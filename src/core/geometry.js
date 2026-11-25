@@ -77,9 +77,9 @@ export class GeometryBatcher {
 
   /**
    * Add a box with crisp world-scaled UVs (tileScale = meters per texture repeat).
-   * Prevents stretched wall/floor textures on arbitrary architectural dimensions!
+   * If fitV is true, vertical wall faces map V across [0, 1] from bottom to top (perfect for two-tone dado hospital walls!).
    */
-  addBox(material, w, h, d, x, y, z, ry = 0, tileScale = 2.4, castShadow = true, receiveShadow = true, rx = 0, rz = 0) {
+  addBox(material, w, h, d, x, y, z, ry = 0, tileScale = 2.4, castShadow = true, receiveShadow = true, rx = 0, rz = 0, fitV = false) {
     const geo = new THREE.BoxGeometry(w, h, d);
     if (tileScale > 0) {
       const uv = geo.attributes.uv;
@@ -90,17 +90,14 @@ export class GeometryBatcher {
         let u = uv.getX(i);
         let v = uv.getY(i);
         if (nx > 0.5) {
-          // +X / -X face: width = d, height = h
           u *= d / tileScale;
-          v *= h / tileScale;
+          v = fitV ? v : v * (h / tileScale);
         } else if (ny > 0.5) {
-          // +Y / -Y face: width = w, height = d
           u *= w / tileScale;
           v *= d / tileScale;
         } else {
-          // +Z / -Z face: width = w, height = h
           u *= w / tileScale;
-          v *= h / tileScale;
+          v = fitV ? v : v * (h / tileScale);
         }
         uv.setXY(i, u, v);
       }

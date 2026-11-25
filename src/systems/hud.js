@@ -72,6 +72,8 @@ export class HudManager {
       sVolMasterVal: $('sVolMasterVal'),
       sVolAmb: $('sVolAmb'),
       sVolAmbVal: $('sVolAmbVal'),
+      sVolBreath: $('sVolBreath'),
+      sVolBreathVal: $('sVolBreathVal'),
 
       // Note & Dossier & End
       noteTitle: $('noteTitle'),
@@ -239,6 +241,10 @@ export class HudManager {
     this.el.sVolMasterVal.textContent = `${Math.round(SETTINGS.vol.master * 100)}%`;
     this.el.sVolAmb.value = SETTINGS.vol.amb;
     this.el.sVolAmbVal.textContent = `${Math.round(SETTINGS.vol.amb * 100)}%`;
+    if (this.el.sVolBreath) {
+      this.el.sVolBreath.value = SETTINGS.vol.breath;
+      this.el.sVolBreathVal.textContent = `${Math.round(SETTINGS.vol.breath * 100)}%`;
+    }
   }
 
   openDossier() {

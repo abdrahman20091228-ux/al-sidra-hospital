@@ -205,11 +205,13 @@ export class PlayerController {
     if (PLAYER.exhausted && STATE.stamina > 28) PLAYER.exhausted = false;
     const sprinting = wantSprint && !PLAYER.exhausted && STATE.stamina > 1;
     if (sprinting) {
-      STATE.stamina = Math.max(0, STATE.stamina - 16 * dt);
+      STATE.stamina = Math.max(0, STATE.stamina - 17 * dt);
       if (STATE.stamina <= 1) PLAYER.exhausted = true;
     } else {
-      STATE.stamina = Math.min(100, STATE.stamina + 20 * dt);
+      STATE.stamina = Math.min(100, STATE.stamina + 16 * dt);
     }
+    const targetExert = PLAYER.exhausted ? 1.0 : clamp((72 - STATE.stamina) / 72, 0, 1) * (sprinting ? 1.0 : 0.78);
+    PLAYER.exertion = (PLAYER.exertion || 0) + (targetExert - (PLAYER.exertion || 0)) * Math.min(1, dt * 2.5);
 
     const speed = sprinting ? SPRINT_SPEED : WALK_SPEED;
     const sy = Math.sin(PLAYER.yaw);

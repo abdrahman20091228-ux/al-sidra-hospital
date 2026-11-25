@@ -37,16 +37,17 @@ export const QUALITY_PRESETS = {
 
 export const SETTINGS = {
   quality: IS_MOBILE ? 'balanced' : 'high',
-  fpsCap: IS_MOBILE ? 45 : 60, // Thermal cap prevents 120Hz mobile battery melt
-  brightness: 0.35,
+  fpsCap: IS_MOBILE ? 45 : 60, // Supports 30 / 45 / 60 / 90 FPS thermal control
+  brightness: 0.22,
   sens: 2.2,
   cleanHud: false,
   vol: {
     master: 0.9,
     amb: 0.95,
-    foot: 0.9,
-    sfx: 0.9,
-    ui: 0.8,
+    foot: 0.92,
+    breath: 0.9,
+    sfx: 0.92,
+    ui: 0.78,
   },
 };
 

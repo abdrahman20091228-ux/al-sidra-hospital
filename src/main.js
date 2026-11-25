@@ -82,7 +82,7 @@ function boot() {
 
   function toggleMap() {
     if (STATE.phase !== 'play' || STATE.paused || STATE.inSettings || STATE.inNote) return;
-    audio.uiClick();
+    audio.paperRustle();
     if (STATE.inMap) {
       hud.closeMap();
     } else {
@@ -110,10 +110,10 @@ function boot() {
   hud.el.btnMapX.addEventListener('click', toggleMap);
   hud.el.interactBtn.addEventListener('click', () => story.interactNearestClue());
 
-  // Map tab switchers
-  hud.el.tabForest.addEventListener('click', () => { audio.uiClick(); hud.setActiveMapTab('forest'); mapUI.setTab('forest'); });
-  hud.el.tabF1.addEventListener('click', () => { audio.uiClick(); hud.setActiveMapTab('f1'); mapUI.setTab('f1'); });
-  hud.el.tabF2.addEventListener('click', () => { audio.uiClick(); hud.setActiveMapTab('f2'); mapUI.setTab('f2'); });
+  // Map tab switchers with authentic paper rustle sound
+  hud.el.tabForest.addEventListener('click', () => { audio.paperRustle(); hud.setActiveMapTab('forest'); mapUI.setTab('forest'); });
+  hud.el.tabF1.addEventListener('click', () => { audio.paperRustle(); hud.setActiveMapTab('f1'); mapUI.setTab('f1'); });
+  hud.el.tabF2.addEventListener('click', () => { audio.paperRustle(); hud.setActiveMapTab('f2'); mapUI.setTab('f2'); });
 
   // Settings controls
   document.querySelectorAll('[data-quality]').forEach((btn) => {
@@ -160,6 +160,13 @@ function boot() {
     hud.el.sVolAmbVal.textContent = `${Math.round(SETTINGS.vol.amb * 100)}%`;
     audio.applyVolumes();
   });
+  if (hud.el.sVolBreath) {
+    hud.el.sVolBreath.addEventListener('input', () => {
+      SETTINGS.vol.breath = parseFloat(hud.el.sVolBreath.value);
+      hud.el.sVolBreathVal.textContent = `${Math.round(SETTINGS.vol.breath * 100)}%`;
+      audio.applyVolumes();
+    });
+  }
 
   // Keyboard shortcuts
   window.addEventListener('keydown', (e) => {
@@ -180,13 +187,12 @@ function boot() {
     INPUT.keys[e.code] = false;
   });
 
-  // Pause audio & rendering completely when browser tab is backgrounded (saves massive phone battery!)
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) audio.suspend();
     else audio.resume();
   });
 
-  // ===== THERMAL-CAPPED ADAPTIVE MAIN LOOP =====
+  // ===== THERMAL-CAPPED ADAPTIVE MAIN LOOP (30 / 45 / 60 / 90 FPS) =====
   let lastRenderTime = performance.now();
   let fpsFrames = 0;
   let fpsTimer = 0;
@@ -197,10 +203,9 @@ function boot() {
     requestAnimationFrame(tick);
     if (document.hidden) return;
 
-    // Enforce thermal FPS cap (prevents 120Hz mobile GPU meltdown!)
     const minFrameMs = 1000 / Math.max(24, SETTINGS.fpsCap);
     const elapsedMs = now - lastRenderTime;
-    if (elapsedMs < minFrameMs - 1.2) return;
+    if (elapsedMs < minFrameMs - 1.0) return;
     lastRenderTime = now;
 
     const dt = Math.min(elapsedMs / 1000, 0.05);
@@ -214,24 +219,23 @@ function boot() {
       fpsTimer = 0;
     }
 
-    // Zero GPU rendering while in pause / settings / dossier / note modal!
     if (STATE.paused || STATE.inSettings || STATE.inDossier || STATE.inNote || STATE.phase === 'ended') {
       return;
     }
 
     if (STATE.inMap) {
-      // Only refresh lightweight 2D canvas pulse at ~10fps while map is open
       if (fpsFrames % 4 === 0) mapUI.draw();
       return;
     }
 
     if (STATE.phase === 'title') {
       titleAngle += dt * 0.1;
-      const cx = 4.2 + Math.sin(titleAngle) * 3.2;
-      const cz = 14.8 + Math.cos(titleAngle * 0.7) * 1.4;
-      engine.camera.position.set(cx, 3.0 + Math.sin(titleAngle * 1.2) * 0.22, cz);
-      engine.camera.lookAt(-2.6, 3.1, -6);
-      STATE.lightOn = false;
+      const cx = 3.8 + Math.sin(titleAngle) * 2.6;
+      const cz = 14.5 + Math.cos(titleAngle * 0.7) * 1.2;
+      engine.camera.position.set(cx, 2.8 + Math.sin(titleAngle * 1.2) * 0.2, cz);
+      engine.camera.lookAt(-2.2, 3.0, -5.6);
+      // Handheld flashlight illuminates the ominous boarded hospital & crooked rusted sign on the Title Screen!
+      STATE.lightOn = true;
       engine.updateLighting(dt, STATE.rt, engine.camera.position);
       engine.render();
       return;
@@ -241,7 +245,7 @@ function boot() {
       STATE.pt += dt;
       player.update(dt, engine.camera);
       engine.updateLighting(dt, STATE.rt, PLAYER);
-      audio.updateEnvironment(dt, engine._indoorBlend);
+      audio.updateEnvironment(dt, engine._indoorBlend, PLAYER.exertion || 0, PLAYER.z < -8);
       story.update(dt, engine.camera);
       hud.update(dt, fpsValue);
       engine.render();

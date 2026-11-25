@@ -119,12 +119,13 @@
             <button class="seg-btn" data-fps="30">30 FPS</button>
             <button class="seg-btn" data-fps="45">45 FPS</button>
             <button class="seg-btn" data-fps="60">60 FPS</button>
+            <button class="seg-btn" data-fps="90">90 FPS</button>
           </div>
         </div>
         <div class="set-row">
           <span>السطوع الليلي</span>
           <input type="range" id="sBright" min="0" max="1" step="0.05" />
-          <span id="sBrightVal" style="min-width:40px;text-align:left;">35%</span>
+          <span id="sBrightVal" style="min-width:40px;text-align:left;">22%</span>
         </div>
         <div class="set-row">
           <span>نمط الواجهة</span>
@@ -150,22 +151,27 @@
           <input type="range" id="sVolAmb" min="0" max="1" step="0.05" />
           <span id="sVolAmbVal" style="min-width:40px;text-align:left;">95%</span>
         </div>
+        <div class="set-row">
+          <span>تنفّس وتعب الشخصية</span>
+          <input type="range" id="sVolBreath" min="0" max="1" step="0.05" />
+          <span id="sVolBreathVal" style="min-width:40px;text-align:left;">90%</span>
+        </div>
       </div>
       <button id="btnSetBack" class="pill-btn primary">حفظ ورجوع</button>
     </div>
 
-    <!-- ARCHITECTURAL BLUEPRINT & FOREST TRAIL MAP -->
+    <!-- TORN AGED PAPER MAPS (3 WIDE SWITCHABLE MAPS) -->
     <div id="mapOverlay" class="screen hidden">
       <button id="btnMapX">✕</button>
-      <h2 style="font-size:19px;color:#d6eee8;">المخطط المعماري — مستشفى السدرة والغابة</h2>
+      <h2 style="font-size:18px;color:#d6be8c;">خرائط مستشفى السدرة — أوراق قديمة ممزقة (١٩٩٤)</h2>
       <div class="map-tabs">
-        <button class="map-tab" id="tabForest">الغابة والطريق الطيني</button>
-        <button class="map-tab" id="tabF1">الطابق الأول (١٤ قسم)</button>
-        <button class="map-tab" id="tabF2">الطابق الثاني</button>
+        <button class="map-tab" id="tabForest">١. الغابة والطريق الطيني</button>
+        <button class="map-tab" id="tabF1">٢. الطابق الأول (١٤ قسم)</button>
+        <button class="map-tab" id="tabF2">٣. الطابق الثاني</button>
       </div>
-      <canvas id="mapCanvas" width="760" height="760"></canvas>
-      <div style="font-size:12px;color:#92b4b8;">النقطة الحمراء = موقعك واتجاه نظرك · الدائرة الذهبية = الهدف · النقاط الذهبية = ملفات وأدلة</div>
-      <button id="btnMapClose" class="pill-btn">إغلاق الخريطة</button>
+      <canvas id="mapCanvas" width="960" height="720"></canvas>
+      <div style="font-size:12px;color:#a89470;">الحبر الأحمر = موقعك واتجاه نظرك · علامة ✕ = الهدف · النقاط البنية = ملفات وأدلة</div>
+      <button id="btnMapClose" class="pill-btn">طيّ الورقة وإغلاق</button>
     </div>
 
     <!-- INCIDENT DOSSIER -->

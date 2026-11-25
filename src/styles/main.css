@@ -677,38 +677,41 @@ body.rot #game-container {
   background: rgba(226, 178, 86, 0.16);
 }
 
-/* Interactive Architectural Map Overlay */
+/* Torn Aged Paper Map Overlay (Wide 4:3 Display) */
 #mapOverlay {
-  background: rgba(4, 9, 13, 0.94);
-  gap: 10px;
+  background: radial-gradient(ellipse at 50% 48%, rgba(22, 16, 10, 0.94) 0%, rgba(4, 3, 2, 0.98) 100%);
+  gap: 8px;
 }
 
 .map-tabs {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .map-tab {
-  padding: 6px 16px;
+  padding: 6px 18px;
   font-size: 13px;
   font-weight: 700;
-  border: 1px solid var(--border-soft);
-  border-radius: 5px;
-  color: var(--text-muted);
-  background: rgba(12, 22, 28, 0.7);
+  border: 1px solid rgba(152, 122, 74, 0.45);
+  border-radius: 4px;
+  color: #a6926c;
+  background: rgba(24, 18, 11, 0.78);
 }
 
 .map-tab.on {
-  border-color: var(--accent-teal);
-  color: #d6f8f0;
-  background: rgba(46, 118, 108, 0.32);
+  border-color: #d8ba7c;
+  color: #f6e4b8;
+  background: rgba(118, 84, 38, 0.36);
 }
 
 #mapCanvas {
-  width: min(68vh, 84vw);
-  height: min(68vh, 84vw);
-  border-radius: 8px;
-  box-shadow: 0 12px 42px rgba(0, 0, 0, 0.75);
+  width: min(86vw, 90vh * 1.333);
+  max-height: 68vh;
+  aspect-ratio: 4 / 3;
+  background: transparent;
+  filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.9));
 }
 
 #btnMapX {
