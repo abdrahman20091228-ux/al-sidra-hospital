@@ -1,7 +1,7 @@
 :root {
-  --bg-dark: #070b0f;
-  --panel-bg: rgba(9, 15, 20, 0.88);
-  --border-soft: rgba(164, 196, 198, 0.24);
+  --bg-dark: #030508;
+  --panel-bg: rgba(9, 14, 18, 0.92);
+  --border-soft: rgba(164, 196, 198, 0.22);
   --border-accent: rgba(226, 178, 86, 0.65);
   --text-main: #e6e3d8;
   --text-muted: #9aa7aa;
@@ -74,16 +74,78 @@ body.rot #game-container {
   height: 100% !important;
 }
 
-/* Single static lightweight vignette (zero animated CSS compositor thrashing!) */
 #vignette {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 4;
-  background: radial-gradient(ellipse 76% 70% at 50% 50%, transparent 48%, rgba(3, 6, 10, 0.68) 100%);
+  background: radial-gradient(ellipse 84% 78% at 50% 50%, transparent 60%, rgba(2, 4, 7, 0.36) 100%);
 }
 
-/* ===== CAMCORDER HUD ===== */
+/* ===== OPENING CINEMATIC OVERLAY ===== */
+#introOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  pointer-events: auto;
+}
+
+#introCurtain {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.intro-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 9%;
+  background: #000;
+  pointer-events: none;
+  transition: transform 0.6s ease;
+}
+
+#introLetterTop { top: 0; }
+#introLetterBot { bottom: 0; }
+
+#introCaption {
+  position: absolute;
+  bottom: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  direction: rtl;
+  font-size: 16px;
+  font-weight: 700;
+  color: #efe8d4;
+  text-shadow: 0 2px 12px #000;
+  text-align: center;
+  max-width: 78%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+#introCaption.show {
+  opacity: 1;
+}
+
+#btnSkipIntro {
+  position: absolute;
+  top: 12%;
+  right: 18px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(232, 224, 200, 0.78);
+  background: rgba(8, 12, 16, 0.6);
+  border: 1px solid rgba(226, 178, 86, 0.35);
+  border-radius: 4px;
+}
+
+/* ===== ULTRA-CLEAN MINIMALIST HUD ===== */
 #camUI {
   position: absolute;
   inset: 0;
@@ -97,114 +159,125 @@ body.rot #game-container {
   pointer-events: none;
 }
 
+/* Top-Left: Subtle location tag + Live Comments */
 .hud-tl {
   position: absolute;
   top: 12px;
-  left: 16px;
+  left: 14px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  max-width: min(260px, 36%);
 }
 
 .rec-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  letter-spacing: 2px;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(226, 232, 230, 0.78);
 }
 
 .rec-dot {
-  width: 9px;
-  height: 9px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--accent-red);
-  box-shadow: 0 0 8px var(--accent-red);
-}
-
-.rec-label {
-  color: var(--accent-red);
-  font-weight: 700;
-}
-
-.live-badge {
-  color: #dfe6e4;
-  background: rgba(12, 20, 26, 0.58);
-  border: 1px solid var(--border-soft);
-  padding: 1px 8px;
-  font-size: 11px;
-  border-radius: 3px;
+  box-shadow: 0 0 6px var(--accent-red);
+  flex-shrink: 0;
 }
 
 #hudZone {
   font-family: 'Cairo', Tahoma, sans-serif;
   direction: rtl;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent-teal);
   text-shadow: 0 1px 4px #000;
 }
 
+.live-mini {
+  font-size: 10px;
+  color: rgba(206, 214, 212, 0.65);
+}
+
+/* Live viewer chat cleanly anchored Top-Left! */
+#hudChat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chat-line {
+  direction: rtl;
+  text-align: right;
+  font-family: 'Cairo', Tahoma, sans-serif;
+  font-size: 11px;
+  line-height: 1.35;
+  background: rgba(5, 9, 13, 0.48);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: rgba(232, 228, 218, 0.9);
+  transition: opacity 0.6s;
+}
+
+.chat-line.fade {
+  opacity: 0;
+}
+
+/* Top-Right: Clean Icon-Only Controls (FPS + Map + Settings Gear) */
 .hud-tr {
   position: absolute;
   top: 12px;
-  right: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  font-size: 11px;
-  color: rgba(226, 232, 230, 0.8);
-}
-
-.batt-row {
+  right: 14px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  pointer-events: auto;
 }
 
-.batt-box {
-  width: 44px;
-  height: 13px;
-  border: 1px solid rgba(220, 230, 228, 0.55);
-  padding: 2px;
-  position: relative;
+#hudFps {
+  font-size: 11px;
+  color: rgba(210, 220, 218, 0.68);
+  text-shadow: 0 1px 4px #000;
+  margin-right: 2px;
 }
 
-.batt-box::after {
-  content: '';
-  position: absolute;
-  right: -4px;
-  top: 3px;
-  width: 3px;
-  height: 5px;
-  background: rgba(220, 230, 228, 0.55);
+.hud-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(180, 200, 198, 0.24);
+  background: rgba(8, 13, 18, 0.62);
+  color: rgba(235, 232, 222, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.14s, border-color 0.14s;
 }
 
-#hudBattFill {
-  display: block;
-  height: 100%;
-  width: 100%;
-  background: #58c982;
+.hud-icon-btn:active {
+  background: rgba(226, 178, 86, 0.22);
+  border-color: var(--accent-amber);
 }
 
+/* Fleeting subtle mission whisper (auto-fades so screen stays spotless!) */
 #hudObjective {
   position: absolute;
-  top: 12px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
   direction: rtl;
   font-family: 'Cairo', Tahoma, sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  color: #f2eee2;
-  background: rgba(7, 13, 18, 0.72);
-  border: 1px solid rgba(154, 198, 194, 0.28);
-  border-right: 3px solid var(--accent-amber);
-  padding: 6px 16px;
+  color: #f0eadc;
+  background: rgba(6, 10, 14, 0.64);
+  border-right: 2.5px solid var(--accent-amber);
+  padding: 4px 14px;
   border-radius: 4px;
   white-space: nowrap;
-  max-width: 58vw;
+  max-width: 52%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -214,28 +287,29 @@ body.rot #game-container {
   color: #8df0b4;
 }
 
-/* Minimal crisp crosshair + corner viewfinder ticks */
+/* Minimal crisp crosshair */
 #crosshair {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   transform: translate(-50%, -50%);
+  opacity: 0.72;
 }
 
 #crosshair::before,
 #crosshair::after {
   content: '';
   position: absolute;
-  background: rgba(242, 240, 232, 0.78);
+  background: rgba(242, 240, 232, 0.8);
 }
 
 #crosshair::before {
   left: 50%;
   top: 0;
   width: 1px;
-  height: 12px;
+  height: 10px;
   transform: translateX(-50%);
 }
 
@@ -243,7 +317,7 @@ body.rot #game-container {
   top: 50%;
   left: 0;
   height: 1px;
-  width: 12px;
+  width: 10px;
   transform: translateY(-50%);
 }
 
@@ -252,8 +326,7 @@ body.rot #game-container {
   display: none;
   position: absolute;
   transform: translate(-50%, -50%);
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.45);
 }
 
 #afBox.lock {
@@ -263,12 +336,12 @@ body.rot #game-container {
 #afLabel {
   position: absolute;
   left: 50%;
-  top: -26px;
+  top: -24px;
   transform: translateX(-50%);
   white-space: nowrap;
   font-family: 'Cairo', Tahoma, sans-serif;
   direction: rtl;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
   text-shadow: 0 1px 4px #000;
@@ -277,9 +350,9 @@ body.rot #game-container {
 #afBar {
   position: absolute;
   left: 4%;
-  bottom: -10px;
+  bottom: -9px;
   width: 92%;
-  height: 4px;
+  height: 3px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
 }
@@ -291,48 +364,20 @@ body.rot #game-container {
   border-radius: 2px;
 }
 
-/* Contextual live viewer chat */
-#hudChat {
-  position: absolute;
-  left: 16px;
-  bottom: 44px;
-  width: min(290px, 34vw);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.chat-line {
-  direction: rtl;
-  text-align: right;
-  font-family: 'Cairo', Tahoma, sans-serif;
-  font-size: 12px;
-  line-height: 1.4;
-  background: rgba(6, 11, 16, 0.52);
-  padding: 3px 9px;
-  border-radius: 4px;
-  color: #e4e2d8;
-  transition: opacity 0.6s;
-}
-
-.chat-line.fade {
-  opacity: 0;
-}
-
 #hudSubtitle {
   position: absolute;
-  bottom: 48px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   direction: rtl;
   font-family: 'Cairo', Tahoma, sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: #f5f0e2;
-  background: rgba(6, 10, 14, 0.72);
-  padding: 7px 18px;
-  border-radius: 6px;
-  max-width: 72vw;
+  background: rgba(4, 7, 10, 0.68);
+  padding: 5px 16px;
+  border-radius: 5px;
+  max-width: 70%;
   text-align: center;
   opacity: 0;
   transition: opacity 0.25s;
@@ -342,24 +387,15 @@ body.rot #game-container {
   opacity: 1;
 }
 
-#hudTimecode {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 13px;
-  letter-spacing: 3px;
-  color: rgba(230, 232, 224, 0.85);
-}
-
 #staminaBar {
   position: absolute;
-  left: 16px;
-  bottom: 16px;
-  width: 104px;
-  height: 5px;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 3.5px;
   background: rgba(255, 255, 255, 0.14);
-  border-radius: 3px;
+  border-radius: 2px;
   overflow: hidden;
 }
 
@@ -369,64 +405,45 @@ body.rot #game-container {
   background: var(--accent-teal);
 }
 
-/* Action Controls (Right side) */
+/* Bottom-Right: Single Clean Flashlight Button */
 .hud-actions {
   position: absolute;
   right: 16px;
   bottom: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
   pointer-events: auto;
 }
 
-.hud-pill {
-  padding: 7px 14px;
-  font-family: 'Cairo', Tahoma, sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  background: rgba(9, 16, 22, 0.74);
-  border: 1px solid var(--border-soft);
-  border-radius: 6px;
-  color: #e4e2d8;
-}
-
-.hud-pill:active {
-  background: rgba(88, 184, 166, 0.24);
-}
-
 #btnLight {
-  width: 58px;
-  height: 58px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  border: 1.5px solid var(--border-soft);
-  background: rgba(9, 16, 22, 0.76);
+  border: 1.5px solid rgba(180, 196, 194, 0.28);
+  background: rgba(8, 13, 18, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #aeb6b2;
+  color: #9aa4a0;
 }
 
 #btnLight.on {
   border-color: var(--accent-amber);
   color: #f6cf78;
-  box-shadow: 0 0 14px rgba(226, 178, 86, 0.28);
+  box-shadow: 0 0 12px rgba(226, 178, 86, 0.26);
 }
 
 #btnInteract {
   pointer-events: auto;
   position: absolute;
-  bottom: 96px;
+  bottom: 68px;
   left: 50%;
   transform: translateX(-50%);
   direction: rtl;
   font-family: 'Cairo', Tahoma, sans-serif;
   font-size: 13px;
   font-weight: 700;
-  padding: 8px 20px;
-  border-radius: 24px;
-  background: rgba(24, 34, 28, 0.9);
+  padding: 7px 18px;
+  border-radius: 22px;
+  background: rgba(20, 28, 24, 0.9);
   border: 1.5px solid var(--accent-amber);
   color: #ffe29a;
 }
@@ -443,30 +460,30 @@ body.rot #game-container {
 
 #joyRing {
   position: absolute;
-  left: -52px;
-  top: -52px;
-  width: 104px;
-  height: 104px;
+  left: -48px;
+  top: -48px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  border: 1.5px solid rgba(226, 232, 228, 0.35);
-  background: rgba(8, 14, 18, 0.25);
+  border: 1.5px solid rgba(226, 232, 228, 0.32);
+  background: rgba(8, 14, 18, 0.2);
 }
 
 #joyNub {
   position: absolute;
-  left: -20px;
-  top: -20px;
-  width: 40px;
-  height: 40px;
+  left: -18px;
+  top: -18px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: rgba(226, 232, 228, 0.26);
-  border: 1.5px solid rgba(226, 232, 228, 0.65);
+  border: 1.5px solid rgba(226, 232, 228, 0.62);
 }
 
 #joySprint {
   position: absolute;
   left: -18px;
-  top: -86px;
+  top: -80px;
   width: 36px;
   text-align: center;
   font-size: 11px;
@@ -477,7 +494,7 @@ body.rot #game-container {
   color: var(--accent-amber);
 }
 
-/* ===== OVERLAY SCREENS ===== */
+/* ===== OVERLAY SCREENS (100% CONTAINER-RELATIVE SIZING FOR ROTATED PHONES!) ===== */
 .screen {
   position: absolute;
   inset: 0;
@@ -486,26 +503,25 @@ body.rot #game-container {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 20px;
+  gap: 10px;
+  padding: 14px 18px;
   direction: rtl;
   text-align: center;
-  background: rgba(6, 10, 14, 0.88);
+  background: rgba(4, 7, 10, 0.90);
 }
 
-/* Title Screen over Live 3D World Panorama */
 #startScreen {
-  background: linear-gradient(270deg, rgba(4, 9, 14, 0.90) 0%, rgba(5, 11, 16, 0.56) 44%, rgba(4, 8, 12, 0.14) 100%);
+  background: linear-gradient(270deg, rgba(3, 6, 9, 0.90) 0%, rgba(4, 8, 12, 0.52) 44%, rgba(3, 6, 9, 0.12) 100%);
   align-items: flex-start;
-  padding-right: clamp(24px, 5vw, 64px);
+  padding-right: clamp(24px, 5%, 64px);
   text-align: right;
 }
 
 .title-card {
-  max-width: 410px;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 
 .title-eyebrow {
@@ -518,41 +534,36 @@ body.rot #game-container {
 }
 
 .title-logo {
-  font-size: clamp(32px, 5.2vw, 56px);
+  font-size: clamp(28px, 5vw, 54px);
   font-weight: 900;
   line-height: 1.1;
   color: #f0ece0;
-  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.9);
 }
 
 .title-sub {
-  font-size: 14px;
+  font-size: 13px;
   color: #b8c2c0;
-  line-height: 1.7;
+  line-height: 1.65;
 }
 
 .title-buttons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .menu-btn {
-  padding: 12px 22px;
-  font-size: 15px;
+  padding: 11px 20px;
+  font-size: 14px;
   font-weight: 700;
   text-align: right;
-  background: rgba(9, 17, 23, 0.82);
+  background: rgba(9, 16, 22, 0.82);
   border: 1px solid var(--border-soft);
   border-right: 4px solid var(--accent-teal);
   border-radius: 6px;
   color: #ece9df;
-  transition: background 0.15s, transform 0.1s;
-}
-
-.menu-btn:hover {
-  background: rgba(20, 38, 44, 0.9);
 }
 
 .menu-btn.primary {
@@ -567,13 +578,14 @@ body.rot #game-container {
 }
 
 .pill-btn {
-  padding: 10px 24px;
-  font-size: 14px;
+  padding: 8px 20px;
+  font-size: 13px;
   font-weight: 700;
   border-radius: 6px;
   border: 1px solid var(--border-soft);
-  background: rgba(16, 28, 36, 0.86);
+  background: rgba(16, 26, 34, 0.88);
   color: #ece9df;
+  flex-shrink: 0;
 }
 
 .pill-btn.primary {
@@ -588,67 +600,60 @@ body.rot #game-container {
   justify-content: center;
 }
 
-/* Pause Mission Checklist */
-.obj-list {
-  width: min(440px, 90vw);
-  max-height: 44vh;
+/* Container-relative scrollable panels (works cleanly in portrait-rotated phones!) */
+.scrollable {
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  background: var(--panel-bg);
-  border: 1px solid var(--border-soft);
-  border-radius: 8px;
-  padding: 14px 18px;
-  text-align: right;
-  font-size: 13px;
-}
-
-.obj-item {
-  color: var(--text-muted);
-}
-
-.obj-item.done {
-  color: #78dc9a;
-  text-decoration: line-through;
-}
-
-.obj-item.cur {
-  color: #ffe09a;
-  font-weight: 700;
-}
-
-/* Settings Panel */
-.panel-box {
-  width: min(520px, 92vw);
-  max-height: 70vh;
-  overflow-y: auto;
-  background: var(--panel-bg);
-  border: 1px solid var(--border-soft);
-  border-radius: 10px;
-  padding: 18px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   touch-action: pan-y;
 }
 
+.obj-list {
+  width: min(440px, 90%);
+  max-height: calc(100% - 135px);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: right;
+  font-size: 12.5px;
+}
+
+.obj-item { color: var(--text-muted); }
+.obj-item.done { color: #78dc9a; text-decoration: line-through; }
+.obj-item.cur { color: #ffe09a; font-weight: 700; }
+
+/* Settings Panel: compact, guaranteed scrollable inside rotated & landscape viewports! */
+.panel-box {
+  width: min(540px, 92%);
+  max-height: calc(100% - 102px);
+  background: var(--panel-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
 .set-sec {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
   color: var(--accent-amber);
   text-align: right;
   border-bottom: 1px solid rgba(226, 178, 86, 0.24);
-  padding-bottom: 4px;
-  margin-top: 4px;
+  padding-bottom: 3px;
 }
 
 .set-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  font-size: 13px;
+  gap: 10px;
+  font-size: 12.5px;
 }
 
 .set-row input[type='range'] {
@@ -658,13 +663,13 @@ body.rot #game-container {
 
 .seg-group {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
 }
 
 .seg-btn {
-  padding: 5px 12px;
-  font-size: 12px;
+  padding: 4px 10px;
+  font-size: 11.5px;
   font-weight: 700;
   border: 1px solid var(--border-soft);
   border-radius: 4px;
@@ -677,22 +682,22 @@ body.rot #game-container {
   background: rgba(226, 178, 86, 0.16);
 }
 
-/* Torn Aged Paper Map Overlay (Wide 4:3 Display) */
+/* Evacuation Map Overlay */
 #mapOverlay {
-  background: radial-gradient(ellipse at 50% 48%, rgba(22, 16, 10, 0.94) 0%, rgba(4, 3, 2, 0.98) 100%);
-  gap: 8px;
+  background: radial-gradient(ellipse at 50% 48%, rgba(20, 14, 9, 0.94) 0%, rgba(3, 2, 1, 0.98) 100%);
+  gap: 7px;
 }
 
 .map-tabs {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .map-tab {
-  padding: 6px 18px;
-  font-size: 13px;
+  padding: 5px 15px;
+  font-size: 12px;
   font-weight: 700;
   border: 1px solid rgba(152, 122, 74, 0.45);
   border-radius: 4px;
@@ -707,8 +712,8 @@ body.rot #game-container {
 }
 
 #mapCanvas {
-  width: min(86vw, 90vh * 1.333);
-  max-height: 68vh;
+  max-width: 90%;
+  max-height: calc(100% - 102px);
   aspect-ratio: 4 / 3;
   background: transparent;
   filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.9));
@@ -716,11 +721,11 @@ body.rot #game-container {
 
 #btnMapX {
   position: absolute;
-  top: 14px;
-  right: 18px;
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
+  top: 12px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
   border: 1px solid var(--border-soft);
   border-radius: 6px;
   background: rgba(14, 24, 30, 0.8);
@@ -728,22 +733,21 @@ body.rot #game-container {
 
 /* Note & Dossier Paper */
 .paper-box {
-  width: min(560px, 92vw);
-  max-height: 66vh;
-  overflow-y: auto;
+  width: min(560px, 92%);
+  max-height: calc(100% - 115px);
   background: #10171c;
   border: 1px solid rgba(226, 178, 86, 0.35);
   border-radius: 8px;
-  padding: 20px 24px;
+  padding: 16px 20px;
   text-align: right;
-  line-height: 1.95;
-  font-size: 14px;
+  line-height: 1.85;
+  font-size: 13.5px;
   color: #dcd8cc;
   white-space: pre-line;
 }
 
 .paper-meta {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--accent-teal);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }

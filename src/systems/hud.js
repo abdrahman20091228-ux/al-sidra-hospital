@@ -1,17 +1,24 @@
-import { PLAYER, QUALITY_PRESETS, SETTINGS, STATE } from '../core/config.js';
-import { pad2 } from '../utils/math.js';
+import { PLAYER, SETTINGS, STATE } from '../core/config.js';
 import { MISSIONS } from './story.js';
 
 const $ = (id) => document.getElementById(id);
 
 /**
- * Throttled, thermally efficient HUD & Menu Manager.
- * Updates DOM text at 5 Hz instead of 60-120 Hz to prevent mobile layout thrashing.
+ * Ultra-Clean Minimalist HUD & Menu Manager:
+ * - Comments neatly top-left (max 2 compact lines)
+ * - Icon-only Settings Gear & Map buttons top-right
+ * - Single Flashlight button bottom-right
+ * - Auto-hiding stamina bar & fleeting mission whisper so screen stays spotless!
  */
 export class HudManager {
   constructor() {
     this.el = {
       camUI: $('camUI'),
+      introOverlay: $('introOverlay'),
+      introCurtain: $('introCurtain'),
+      introCaption: $('introCaption'),
+      btnSkipIntro: $('btnSkipIntro'),
+
       startScreen: $('startScreen'),
       pauseOverlay: $('pauseOverlay'),
       settingsScreen: $('settingsScreen'),
@@ -20,49 +27,40 @@ export class HudManager {
       noteModal: $('noteModal'),
       endScreen: $('endScreen'),
 
-      // HUD readouts
       viewers: $('hudViewers'),
       fps: $('hudFps'),
       zone: $('hudZone'),
       objective: $('hudObjective'),
-      timecode: $('hudTimecode'),
-      battFill: $('hudBattFill'),
-      battPct: $('hudBattPct'),
+      staminaBar: $('staminaBar'),
       staFill: $('hudStaFill'),
       sub: $('hudSubtitle'),
       chat: $('hudChat'),
       interactBtn: $('btnInteract'),
 
-      // Auto-focus filming box
       afBox: $('afBox'),
       afLabel: $('afLabel'),
       afFill: $('afFill'),
 
-      // Controls
       btnLight: $('btnLight'),
       btnMap: $('btnMap'),
       btnMenu: $('btnMenu'),
 
-      // Title buttons
       btnStart: $('btnStartGame'),
       btnTitleSettings: $('btnTitleSettings'),
       btnTitleDossier: $('btnTitleDossier'),
       loadBadge: $('titleLoad'),
 
-      // Pause & Mission list
       pauseObjectives: $('pauseObjectives'),
       btnResume: $('btnResume'),
       btnPauseSettings: $('btnPauseSettings'),
       btnRestart: $('btnRestart'),
 
-      // Map tabs
       tabForest: $('tabForest'),
       tabF1: $('tabF1'),
       tabF2: $('tabF2'),
       btnMapClose: $('btnMapClose'),
       btnMapX: $('btnMapX'),
 
-      // Settings controls
       btnSetBack: $('btnSetBack'),
       sBright: $('sBright'),
       sBrightVal: $('sBrightVal'),
@@ -75,7 +73,6 @@ export class HudManager {
       sVolBreath: $('sVolBreath'),
       sVolBreathVal: $('sVolBreathVal'),
 
-      // Note & Dossier & End
       noteTitle: $('noteTitle'),
       noteDate: $('noteDate'),
       noteBody: $('noteBody'),
@@ -87,6 +84,8 @@ export class HudManager {
 
     this._hudAccum = 0;
     this._settingsReturn = 'title';
+    this._objToastTimer = null;
+    this._lastMissionIdx = -1;
   }
 
   setReady() {
@@ -96,7 +95,19 @@ export class HudManager {
     );
   }
 
+  enterIntroMode() {
+    this.el.startScreen.classList.add('hidden');
+    this.el.pauseOverlay.classList.add('hidden');
+    this.el.endScreen.classList.add('hidden');
+    this.el.camUI.classList.add('hidden');
+    this.el.introOverlay.classList.remove('hidden');
+    this.el.introCurtain.style.opacity = '1';
+    this.el.introCaption.textContent = '';
+    this.el.introCaption.classList.remove('show');
+  }
+
   enterPlayMode() {
+    this.el.introOverlay.classList.add('hidden');
     this.el.startScreen.classList.add('hidden');
     this.el.pauseOverlay.classList.add('hidden');
     this.el.endScreen.classList.add('hidden');
@@ -119,10 +130,19 @@ export class HudManager {
     }
   }
 
+  showObjectiveToast(text, isDone = false, ms = 3800) {
+    this.el.objective.textContent = text;
+    this.el.objective.classList.toggle('done', isDone);
+    this.el.objective.classList.remove('hidden');
+    clearTimeout(this._objToastTimer);
+    this._objToastTimer = setTimeout(() => {
+      this.el.objective.classList.add('hidden');
+      this.el.objective.classList.remove('done');
+    }, ms);
+  }
+
   flashMissionDone(title) {
-    this.el.objective.classList.add('done');
-    this.el.objective.textContent = `✓ تم التوثيق — ${title}`;
-    setTimeout(() => this.el.objective.classList.remove('done'), 1800);
+    this.showObjectiveToast(`✓ تم التوثيق — ${title}`, true, 2600);
   }
 
   pushChat(user, text, color = '#98c4d8') {
@@ -134,13 +154,14 @@ export class HudManager {
     row.appendChild(b);
     row.appendChild(document.createTextNode(text));
     this.el.chat.appendChild(row);
-    while (this.el.chat.children.length > 5) {
+    // Keep top-left comment feed crisp & uncluttered (max 2 visible messages!)
+    while (this.el.chat.children.length > 2) {
       this.el.chat.firstChild.remove();
     }
     setTimeout(() => {
       row.classList.add('fade');
-      setTimeout(() => row.remove(), 700);
-    }, 7500);
+      setTimeout(() => row.remove(), 650);
+    }, 6200);
   }
 
   updateAFBox(ndcX, ndcY, dist, label, locked, prog) {
@@ -148,7 +169,7 @@ export class HudManager {
     const h = this.el.camUI.clientHeight || window.innerHeight;
     const sx = (ndcX * 0.5 + 0.5) * w;
     const sy = (-ndcY * 0.5 + 0.5) * h;
-    const size = Math.max(66, Math.min(200, 1800 / Math.max(2, dist)));
+    const size = Math.max(66, Math.min(185, 1700 / Math.max(2, dist)));
     const box = this.el.afBox;
     box.style.display = 'block';
     box.style.left = `${sx}px`;
@@ -167,28 +188,25 @@ export class HudManager {
   update(dt, fpsValue) {
     this._hudAccum -= dt;
     if (this._hudAccum > 0) return;
-    this._hudAccum = 0.2; // 5 Hz throttled HUD refresh = ultra-low mobile CPU/battery usage
+    this._hudAccum = 0.2;
 
-    const t = STATE.pt;
-    const h = Math.floor(t / 3600);
-    const m = Math.floor((t / 60) % 60);
-    const s = Math.floor(t % 60);
-    const fr = Math.floor((t * 24) % 24);
-    this.el.timecode.textContent = `${pad2(h)}:${pad2(m)}:${pad2(s)}:${pad2(fr)}`;
-    this.el.fps.textContent = `${Math.max(1, Math.round(fpsValue))} FPS · CAP ${SETTINGS.fpsCap}`;
+    this.el.fps.textContent = `${Math.max(1, Math.round(fpsValue))} FPS`;
     this.el.viewers.textContent = Math.floor(STATE.viewers).toLocaleString('en-US');
     this.el.zone.textContent = STATE.currentRoomName;
 
-    const pct = Math.round(STATE.battMain);
-    this.el.battFill.style.width = `${pct}%`;
-    this.el.battPct.textContent = `${pct}%`;
-    this.el.staFill.style.width = `${Math.round(STATE.stamina)}%`;
+    // Only show thin stamina line while actively sprinting/recovering
+    const sta = Math.round(STATE.stamina);
+    this.el.staminaBar.classList.toggle('hidden', sta >= 99);
+    this.el.staFill.style.width = `${sta}%`;
     this.el.btnLight.classList.toggle('on', STATE.lightOn);
 
-    const active = MISSIONS[STATE.missionIdx];
-    if (active && !this.el.objective.classList.contains('done')) {
-      const d = Math.round(Math.hypot(active.target.x - PLAYER.x, active.target.z - PLAYER.z));
-      this.el.objective.textContent = `الهدف ${STATE.missionIdx + 1}/${MISSIONS.length} · ${active.title} (${d}م)`;
+    // Show clean brief toast ONLY when mission advances
+    if (STATE.missionIdx !== this._lastMissionIdx) {
+      this._lastMissionIdx = STATE.missionIdx;
+      const active = MISSIONS[STATE.missionIdx];
+      if (active) {
+        this.showObjectiveToast(`الهدف ${STATE.missionIdx + 1}/${MISSIONS.length} · ${active.title}`, false, 4200);
+      }
     }
   }
 
@@ -210,6 +228,7 @@ export class HudManager {
   openSettings(from) {
     this._settingsReturn = from;
     STATE.inSettings = true;
+    this.el.introOverlay.classList.add('hidden');
     if (from === 'title') this.el.startScreen.classList.add('hidden');
     else this.el.pauseOverlay.classList.add('hidden');
     this.syncSettingsUI();

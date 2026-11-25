@@ -8,25 +8,25 @@ export const IS_MOBILE =
 export const QUALITY_PRESETS = {
   eco: {
     label: 'توفير البطارية (أقل حرارة)',
-    dprCap: 0.85,
+    dprCap: 0.9,
     shadowSize: 512,
     shadowSkip: 2,
     shadows: true,
-    anisotropy: 2,
-    fogFar: 48,
+    anisotropy: 4,
+    fogFar: 46,
   },
   balanced: {
-    label: 'متوازن (موصى به للهاتف)',
-    dprCap: 1.05,
+    label: 'متوازن',
+    dprCap: 1.2,
     shadowSize: 1024,
     shadowSkip: 1,
     shadows: true,
-    anisotropy: 4,
-    fogFar: 62,
+    anisotropy: 6,
+    fogFar: 60,
   },
   high: {
-    label: 'عالي (لأجهزة الكمبيوتر)',
-    dprCap: 1.5,
+    label: 'عالي (الافتراضي)',
+    dprCap: 1.65,
     shadowSize: 1024,
     shadowSkip: 0,
     shadows: true,
@@ -36,18 +36,18 @@ export const QUALITY_PRESETS = {
 };
 
 export const SETTINGS = {
-  quality: IS_MOBILE ? 'balanced' : 'high',
-  fpsCap: IS_MOBILE ? 45 : 60, // Supports 30 / 45 / 60 / 90 FPS thermal control
+  quality: 'high', // Default High Quality as requested
+  fpsCap: 90,      // True 90 FPS (native 90/120Hz uncapped mode) by default; 30/45/60/90 selectable
   brightness: 0.22,
   sens: 2.2,
   cleanHud: false,
   vol: {
-    master: 0.9,
+    master: 0.92,
     amb: 0.95,
-    foot: 0.92,
-    breath: 0.9,
-    sfx: 0.92,
-    ui: 0.78,
+    foot: 0.95,
+    breath: 0.92,
+    sfx: 0.95,
+    ui: 0.8,
   },
 };
 
@@ -56,7 +56,7 @@ export const WALL_H = 3.2;
 
 export const STATE = {
   booted: false,
-  phase: 'title', // 'title' | 'play' | 'ending' | 'ended'
+  phase: 'title', // 'title' | 'intro' | 'play' | 'ending' | 'ended'
   paused: false,
   inSettings: false,
   inMap: false,
@@ -64,47 +64,47 @@ export const STATE = {
   inNote: false,
   activeNote: null,
 
-  pt: 0, // play time
-  rt: 0, // real elapsed time
+  pt: 0,
+  rt: 0,
+  introTime: 0,
 
-  // Camera battery (generous exploration pace, rechargeable or slow drain, no unfair instant death)
   battMain: 100,
   lightOn: true,
   lightLevel: 1,
 
-  // Broadcast & narrative progress
   viewers: 418,
   maxViewers: 418,
   missionIdx: 0,
   discoveredRooms: new Set(),
   collectedClues: new Set(),
-  currentZone: 'forest', // 'forest' | 'road' | 'courtyard' | 'hospital_f1' | 'hospital_f2'
+  currentZone: 'forest',
   currentRoomId: null,
   currentRoomName: 'غابة وادي الضباب',
 
-  // Timers
-  nextChat: 4,
-  nextAmbientSfx: 10,
+  nextChat: 5,
+  nextAmbientSfx: 9,
   stamina: 100,
   subText: '',
   subTimer: 0,
 };
 
 export const PLAYER = {
-  // Starts in the misty pine forest clearing
   x: -10.5,
   y: 0,
   z: 71.0,
   vx: 0,
   vz: 0,
-  yaw: -0.32, // Facing northeast toward the trail & muddy road
+  yaw: -0.32,
   pitch: -0.02,
   eyeY: 1.66,
-  radius: 0.36,
+  wallRadius: 0.42, // Keeps camera safely away from walls so near-plane NEVER clips wall faces!
+  propRadius: 0.23, // Smaller prop radius for smooth effortless walking around hospital furniture!
+  radius: 0.34,
   bob: 0,
   stepTimer: 0.25,
   stepAlt: 1,
   exhausted: false,
+  exertion: 0,
   onFloor2: false,
 };
 

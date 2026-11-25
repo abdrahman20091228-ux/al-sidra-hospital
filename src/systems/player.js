@@ -111,7 +111,7 @@ export class PlayerController {
       'touchstart',
       (e) => {
         if (!this._canControl()) return;
-        if (e.target.closest('button')) return;
+        if (e.target.closest('button, input, .scrollable, .screen')) return;
         e.preventDefault();
         const w = this.container.clientWidth || window.innerWidth;
         for (const t of e.changedTouches) {
@@ -133,7 +133,7 @@ export class PlayerController {
       'touchmove',
       (e) => {
         if (!this._canControl()) return;
-        if (e.target.closest('button')) return;
+        if (e.target.closest('button, input, .scrollable, .screen')) return;
         e.preventDefault();
         for (const t of e.changedTouches) {
           const p = this._mapXY(t.clientX, t.clientY);

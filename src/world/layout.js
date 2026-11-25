@@ -162,13 +162,13 @@ export const ROOMS = [
     id: 'scrub',
     floor: 1,
     name: 'غرفة التعقيم والدرج',
-    code: 'STERILE PREP & STAIRS',
+    code: 'MAIN STAIRWELL & PREP',
     x0: -10.5, x1: -2.2, z0: -42, z1: -29.5,
     wallStyle: 'sterile',
     floorStyle: 'sterile',
     accent: '#4a6468',
     mapColor: 'rgba(78, 102, 108, 0.22)',
-    labelPos: { x: -6.3, z: -34.0 },
+    labelPos: { x: -6.3, z: -31.1 },
   },
   {
     id: 'morgue',
@@ -195,18 +195,31 @@ export const ROOMS = [
     labelPos: { x: 19.25, z: -35.8 },
   },
 
-  // ===== FLOOR 2 (Accessed via North-West Stairwell) =====
+  // ===== FLOOR 2 (Accessed cleanly via Main Stairwell climbing North -> East Landing -> Upper Hallway!) =====
+  {
+    id: 'f2_landing',
+    floor: 2,
+    name: 'ردهة الدرج — الطابق الثاني',
+    code: 'STAIRWELL LANDING',
+    x0: -6.5, x1: 2.2, z0: -42.0, z1: -34.5,
+    wallStyle: 'corridor',
+    floorStyle: 'terrazzo',
+    accent: '#4a5a60',
+    mapColor: 'rgba(92, 104, 108, 0.20)',
+    labelPos: { x: -2.2, z: -38.2 },
+    isCorridor: true,
+  },
   {
     id: 'f2_hall',
     floor: 2,
     name: 'ممر الطابق الثاني',
     code: 'UPPER CORRIDOR',
-    x0: -10.5, x1: 14.5, z0: -34.5, z1: -29.5,
+    x0: -6.5, x1: 14.5, z0: -34.5, z1: -29.5,
     wallStyle: 'corridor',
     floorStyle: 'terrazzo',
     accent: '#4a5a60',
     mapColor: 'rgba(92, 104, 108, 0.20)',
-    labelPos: { x: 2, z: -32 },
+    labelPos: { x: 4.0, z: -32 },
     isCorridor: true,
   },
   {
@@ -237,12 +250,10 @@ export const ROOMS = [
 
 /**
  * Architectural wall definitions:
- * Each wall segment: { floor, x1, z1, x2, z2, mat, doors: [{ pos (0..1 or world coord), width, height, leafOpen }], windows: [{ pos, width, sillY, height }] }
  * Defined explicitly along exact architectural axes so every corner meets seamlessly with zero gaps!
  */
 export const WALLS_F1 = [
   // --- PERIMETER EXTERIOR WALLS (Ground Floor) ---
-  // Front facade wall (z = -6): Left wing, Center main sliding doors, Right wing
   { x1: -24, z1: -6, x2: 24, z2: -6, mat: 'facade', thickness: 0.42,
     doors: [{ coord: 0, width: 3.8, height: 2.65 }],
     windows: [
@@ -253,21 +264,18 @@ export const WALLS_F1 = [
       { coord: 12.8, width: 3.0, sillY: 1.0, height: 1.55 },
       { coord: 20.0, width: 3.0, sillY: 1.0, height: 1.55 },
     ] },
-  // Back exterior wall (z = -42)
   { x1: -24, z1: -42, x2: 24, z2: -42, mat: 'facade', thickness: 0.42,
     windows: [
       { coord: -17.2, width: 3.4, sillY: 1.15, height: 1.4 },
       { coord: 8.4, width: 2.6, sillY: 1.6, height: 0.95 },
       { coord: 19.2, width: 3.2, sillY: 1.0, height: 1.55 },
     ] },
-  // West exterior wall (x = -24)
   { x1: -24, z1: -6, x2: -24, z2: -42, mat: 'facade', thickness: 0.42,
     windows: [
       { coord: -11, width: 3.2, sillY: 1.0, height: 1.55 },
       { coord: -24.5, width: 3.0, sillY: 1.2, height: 1.35 },
       { coord: -35.8, width: 3.2, sillY: 1.1, height: 1.4 },
     ] },
-  // East exterior wall (x = +24)
   { x1: 24, z1: -6, x2: 24, z2: -42, mat: 'facade', thickness: 0.42,
     windows: [
       { coord: -11, width: 3.2, sillY: 1.0, height: 1.55 },
@@ -276,104 +284,102 @@ export const WALLS_F1 = [
     ] },
 
   // --- INTERIOR PARTITIONS: FRONT WING (z = -6 to -16) ---
-  // Emergency | Lobby wall (x = -9)
   { x1: -9, z1: -6, x2: -9, z2: -16, mat: 'corridor',
     doors: [{ coord: -11, width: 2.2, height: 2.45 }] },
-  // Lobby | Pharmacy wall (x = +9)
   { x1: 9, z1: -6, x2: 9, z2: -16, mat: 'corridor',
-    windows: [{ coord: -10.2, width: 3.4, sillY: 1.05, height: 1.25 }], // Dispensing counter window
-    doors: [{ coord: -14.2, width: 1.4, height: 2.35 }] },
-  // Pharmacy | Nursing Station (x = +16.5)
+    windows: [{ coord: -10.2, width: 3.4, sillY: 1.05, height: 1.25 }],
+    doors: [{ coord: -14.2, width: 1.5, height: 2.35 }] },
   { x1: 16.5, z1: -6, x2: 16.5, z2: -16, mat: 'corridor',
-    doors: [{ coord: -13.5, width: 1.5, height: 2.35 }] },
+    doors: [{ coord: -13.5, width: 1.6, height: 2.35 }] },
 
   // --- MAIN EAST-WEST CONCOURSE WALLS (z = -16 and z = -19.6) ---
-  // South side of Main Concourse (z = -16)
   { x1: -24, z1: -16, x2: -9, z2: -16, mat: 'corridor',
-    doors: [{ coord: -16.5, width: 2.4, height: 2.5 }] }, // ER double doors
-  // Lobby opens wide into Main Concourse (pillars frame x = -9..+9, only short returns)
+    doors: [{ coord: -16.5, width: 2.4, height: 2.5 }] },
   { x1: -9, z1: -16, x2: -5.2, z2: -16, mat: 'corridor' },
   { x1: 5.2, z1: -16, x2: 9, z2: -16, mat: 'corridor' },
-  // Pharmacy & Nursing north wall along concourse (z = -16)
   { x1: 9, z1: -16, x2: 24, z2: -16, mat: 'corridor',
-    doors: [{ coord: 20.2, width: 2.6, height: 2.5 }] }, // Open Nursing Station arch
+    doors: [{ coord: 20.2, width: 2.6, height: 2.5 }] },
 
-  // North side of Main Concourse (z = -19.6) — open at center Clinical Spine x in [-2.2, +2.2]
   { x1: -24, z1: -19.6, x2: -2.2, z2: -19.6, mat: 'corridor',
     doors: [
-      { coord: -18.2, width: 1.8, height: 2.4 }, // Radiology door
-      { coord: -7.4, width: 1.8, height: 2.4 },  // Pathology Lab door
+      { coord: -18.2, width: 1.9, height: 2.4 },
+      { coord: -7.4, width: 1.9, height: 2.4 },
     ],
     windows: [{ coord: -10.4, width: 2.0, sillY: 1.1, height: 1.2 }] },
   { x1: 2.2, z1: -19.6, x2: 24, z2: -19.6, mat: 'corridor',
     doors: [
-      { coord: 8.6, width: 2.2, height: 2.45 },  // Inpatient Ward double doors
-      { coord: 19.5, width: 1.6, height: 2.4 },  // Isolation 204 door
+      { coord: 8.6, width: 2.2, height: 2.45 },
+      { coord: 19.5, width: 1.7, height: 2.4 },
     ],
-    windows: [{ coord: 16.8, width: 1.8, sillY: 1.15, height: 1.1 }] }, // Observation window into Isolation 204
+    windows: [{ coord: 16.8, width: 1.8, sillY: 1.15, height: 1.1 }] },
 
   // --- CENTRAL CLINICAL SPINE WALLS (x = -2.2 and x = +2.2, z = -19.6 to -42) ---
   { x1: -2.2, z1: -19.6, x2: -2.2, z2: -42, mat: 'corridor',
     doors: [
-      { coord: -24.5, width: 1.6, height: 2.4 }, // Lab side door
-      { coord: -32.2, width: 2.2, height: 2.45 }, // Scrub & Stairwell entry
+      { coord: -24.5, width: 1.7, height: 2.4 },
+      { coord: -31.8, width: 2.6, height: 2.5 }, // Wide main stairwell entrance right off spine!
     ] },
   { x1: 2.2, z1: -19.6, x2: 2.2, z2: -42, mat: 'corridor',
     doors: [
-      { coord: -24.5, width: 1.8, height: 2.4 }, // Ward side door
-      { coord: -34.2, width: 2.2, height: 2.45 }, // Morgue heavy doors
+      { coord: -24.5, width: 1.8, height: 2.4 },
+      { coord: -34.2, width: 2.2, height: 2.45 },
     ] },
 
   // --- MIDDLE WING DIVIDERS (z = -19.6 to -29.5) ---
-  // Radiology | Lab (x = -12.5)
   { x1: -12.5, z1: -19.6, x2: -12.5, z2: -29.5, mat: 'sterile',
-    doors: [{ coord: -27.2, width: 1.5, height: 2.35 }] },
-  // Ward | Isolation 204 (x = +15)
+    doors: [{ coord: -27.2, width: 1.6, height: 2.35 }] },
   { x1: 15, z1: -19.6, x2: 15, z2: -29.5, mat: 'ward',
     windows: [{ coord: -24.5, width: 2.4, sillY: 1.15, height: 1.15 }] },
 
   // --- NORTH WING LINE (z = -29.5) ---
   { x1: -24, z1: -29.5, x2: -2.2, z2: -29.5, mat: 'sterile' },
   { x1: 2.2, z1: -29.5, x2: 24, z2: -29.5, mat: 'corridor',
-    doors: [{ coord: 19.2, width: 1.6, height: 2.4 }] }, // Director's Office entry from Isolation/Ward side
+    doors: [{ coord: 19.2, width: 1.7, height: 2.4 }] },
 
   // --- NORTH WING DIVIDERS (z = -29.5 to -42) ---
-  // Operating Theatre | Scrub & Stairwell (x = -10.5)
   { x1: -10.5, z1: -29.5, x2: -10.5, z2: -42, mat: 'sterile',
-    doors: [{ coord: -33.2, width: 2.2, height: 2.45 }], // Wide sterile doors into OR
-    windows: [{ coord: -37.5, width: 2.6, sillY: 1.15, height: 1.2 }] }, // Sterile observation glass
-  // Morgue | Director's Office (x = +14.5)
+    doors: [{ coord: -31.5, width: 2.2, height: 2.45 }], // Wide sterile OR doors South of stairs!
+    windows: [{ coord: -37.5, width: 2.6, sillY: 1.15, height: 1.2 }] },
   { x1: 14.5, z1: -29.5, x2: 14.5, z2: -42, mat: 'morgue',
-    doors: [{ coord: -31.8, width: 1.5, height: 2.35 }] }, // Rear service door between Morgue & Archive
+    doors: [{ coord: -31.8, width: 1.6, height: 2.35 }] },
 ];
 
 /**
- * FLOOR 2 WALLS (compact atmospheric upper wing above the central/north clinical core)
- * X in [-10.5, +14.5], Z in [-34.5, -19.6] + Stairwell landing shaft at X in [-10.5, -6.2], Z in [-42, -34.5]
+ * FLOOR 2 WALLS — Clean L-Shaped Upper Landing & Corridor with ZERO invisible walls!
+ * Stairwell climbs NORTH from z = -33.2 (Y=0) up to z = -39.2 (Y=3.6) inside x ∈ [-10.2, -6.6].
+ * Top landing at x ∈ [-10.5, -6.5], z ∈ [-42.0, -39.2] opens WIDE EAST into f2_landing (x ∈ [-6.5, 2.2], z ∈ [-42.0, -34.5])
+ * which opens WIDE SOUTH into f2_hall (x ∈ [-6.5, 14.5], z ∈ [-34.5, -29.5]) -> Pediatrics & Room 312!
  */
 export const WALLS_F2 = [
-  // Outer perimeter of 2nd Floor playable wing
+  // South exterior wall of Pediatric Ward & Room 312
   { x1: -10.5, z1: -19.6, x2: 14.5, z2: -19.6, mat: 'corridor',
     windows: [
       { coord: -4.2, width: 3.2, sillY: 1.0, height: 1.5 },
       { coord: 8.3, width: 3.2, sillY: 1.0, height: 1.5 },
     ] },
-  { x1: -10.5, z1: -34.5, x2: -10.5, z2: -19.6, mat: 'corridor' },
+  // West wall of Pediatrics (z = -29.5..-19.6)
+  { x1: -10.5, z1: -29.5, x2: -10.5, z2: -19.6, mat: 'corridor' },
+  // West wall of stairwell shaft on Floor 2 (z = -42..-33.2)
+  { x1: -10.5, z1: -42.0, x2: -10.5, z2: -33.0, mat: 'corridor' },
+  // Short west wall closing upper hall west end south of stairs (x = -6.5, z = -39.0..-29.5)
+  { x1: -6.5, z1: -39.0, x2: -6.5, z2: -29.5, mat: 'corridor' },
+  // North wall of stairwell landing & f2_landing (z = -42.0, x = -10.5..+2.2)
+  { x1: -10.5, z1: -42.0, x2: 2.2, z2: -42.0, mat: 'corridor',
+    windows: [{ coord: -2.2, width: 2.8, sillY: 1.0, height: 1.5 }] },
+  // East wall of f2_landing (x = +2.2, z = -42.0..-34.5)
+  { x1: 2.2, z1: -42.0, x2: 2.2, z2: -34.5, mat: 'corridor' },
+  // North wall of east section of f2_hall (z = -34.5, x = +2.2..14.5)
+  { x1: 2.2, z1: -34.5, x2: 14.5, z2: -34.5, mat: 'corridor',
+    windows: [{ coord: 8.4, width: 3.4, sillY: 1.1, height: 1.4 }] },
+  // East exterior wall of Room 312 & f2_hall (x = +14.5, z = -34.5..-19.6)
   { x1: 14.5, z1: -34.5, x2: 14.5, z2: -19.6, mat: 'corridor',
     windows: [{ coord: -24.5, width: 2.8, sillY: 1.0, height: 1.5 }] },
-  // North wall of Upper Corridor (open at stairwell landing x in [-10.5, -6.5])
-  { x1: -6.5, z1: -34.5, x2: 14.5, z2: -34.5, mat: 'corridor',
-    windows: [{ coord: 4.0, width: 3.6, sillY: 1.1, height: 1.4 }] },
-  // Stairwell upper enclosure (x = -10.5..-6.5, z = -42..-34.5)
-  { x1: -10.5, z1: -42, x2: -6.5, z2: -42, mat: 'corridor' },
-  { x1: -10.5, z1: -42, x2: -10.5, z2: -34.5, mat: 'corridor' },
-  { x1: -6.5, z1: -42, x2: -6.5, z2: -34.5, mat: 'corridor' },
 
-  // Interior walls separating Upper Corridor (z = -29.5) from Pediatrics & Room 312
+  // Interior corridor wall separating f2_hall (z = -29.5) from Pediatrics & Room 312
   { x1: -10.5, z1: -29.5, x2: 14.5, z2: -29.5, mat: 'corridor',
     doors: [
-      { coord: -4.2, width: 1.8, height: 2.4 }, // Pediatrics door
-      { coord: 8.3, width: 1.8, height: 2.4 },  // Room 312 door
+      { coord: -3.2, width: 2.0, height: 2.45 }, // Wide Pediatrics door
+      { coord: 8.3, width: 2.0, height: 2.45 },  // Wide Room 312 door
     ],
     windows: [{ coord: 4.8, width: 1.8, sillY: 1.15, height: 1.15 }] },
   // Divider between Pediatrics and Room 312 (x = 2.2)
@@ -381,27 +387,21 @@ export const WALLS_F2 = [
 ];
 
 /**
- * Architectural Stairwell specification connecting Floor 1 Scrub/Stairwell room (Y=0) to Floor 2 Upper Corridor (Y=3.6)
- * Located in x ∈ [-9.9, -6.8], rising south -> north? No, rising from z = -34.8 (bottom, Y=0) to z = -41.2 (top landing) or reverse:
- * Even cleaner: Straight grand concrete hospital flight with handrails!
- * Bottom entry on Floor 1 at z = -40.8 (Y = 0), rising southward to Floor 2 landing at z = -34.6 (Y = 3.6)!
- * Wait: let's check Floor 2 corridor: Floor 2 corridor is z ∈ [-34.5, -29.5]!
- * So if the bottom is at z = -41.0 (Y=0, reachable from Scrub room z=-32..-41, x=-6..-10) and stairs climb SOUTH from z = -40.6 (Y=0) up to z = -34.6 (Y=3.6),
- * you walk right out onto the 2nd Floor Upper Corridor at z = -34.5! Zero collision overlap!
+ * Clean Forward-Facing Concrete Hospital Stairwell:
+ * Bottom step right at z = -33.2 (Y = 0) directly accessible from the Clinical Spine entrance!
+ * Climbs smoothly NORTH to top landing at z = -39.2 (Y = FLOOR2_Y = 3.6m),
+ * then turns cleanly EAST onto the open Floor 2 Landing & Upper Corridor!
  */
 export const STAIRWELL_SPEC = {
   x0: -10.1,
   x1: -6.7,
-  zBottom: -40.6, // Y = 0
-  zTop: -34.6,    // Y = FLOOR2_Y (3.6m)
+  zBottom: -33.2, // Y = 0 (South end — right in front of you when entering from corridor!)
+  zTop: -39.2,    // Y = FLOOR2_Y (North end — opens wide onto Floor 2 top landing!)
   yStart: 0,
   yEnd: FLOOR2_Y,
   steps: 18,
 };
 
-/**
- * Room signage plaques placed automatically beside key doorways.
- */
 export const ROOM_PLAQUES = [
   { x: -16.5, y: 2.75, z: -15.82, ry: 0, title: 'قسم الطوارئ والفرز', code: 'EMERGENCY · ER', accent: '#8f2e26' },
   { x: 12.75, y: 2.75, z: -15.82, ry: 0, title: 'الصيدلية المركزية', code: 'PHARMACY · RX', accent: '#2b6a7a' },
@@ -410,12 +410,12 @@ export const ROOM_PLAQUES = [
   { x: -7.4, y: 2.75, z: -19.42, ry: 0, title: 'المختبر الطبي', code: 'PATHOLOGY LAB', accent: '#3b6a64' },
   { x: 8.6, y: 2.75, z: -19.42, ry: 0, title: 'جناح التنويم أ', code: 'INPATIENT WARD A', accent: '#3d6e52' },
   { x: 19.5, y: 2.75, z: -19.42, ry: 0, title: 'غرفة العزل ٢٠٤', code: 'ISOLATION 204', accent: '#8a5a26' },
-  { x: -10.32, y: 2.75, z: -33.2, ry: Math.PI / 2, title: 'غرفة العمليات', code: 'OPERATING THEATRE', accent: '#287a6a' },
-  { x: -2.02, y: 2.75, z: -32.2, ry: Math.PI / 2, title: 'التعقيم والدرج ▲', code: 'PREP & FLOOR 2', accent: '#4a6468' },
+  { x: -10.32, y: 2.75, z: -31.5, ry: Math.PI / 2, title: 'غرفة العمليات', code: 'OPERATING THEATRE', accent: '#287a6a' },
+  { x: -2.02, y: 2.75, z: -31.8, ry: Math.PI / 2, title: 'الدرج الرئيسي — الطابق الثاني ▲', code: 'MAIN STAIRS · F2', accent: '#4a6468' },
   { x: 2.02, y: 2.75, z: -34.2, ry: -Math.PI / 2, title: 'المشرحة', code: 'MORGUE', accent: '#3e5a74' },
   { x: 19.2, y: 2.75, z: -29.32, ry: 0, title: 'مكتب المدير والأرشيف', code: 'DIRECTOR ARCHIVE', accent: '#6b4e2e' },
   // Floor 2 plaques
-  { x: -4.2, y: FLOOR2_Y + 2.75, z: -29.68, ry: Math.PI, title: 'جناح الأطفال', code: 'PEDIATRIC WARD', accent: '#6e6238' },
+  { x: -3.2, y: FLOOR2_Y + 2.75, z: -29.68, ry: Math.PI, title: 'جناح الأطفال', code: 'PEDIATRIC WARD', accent: '#6e6238' },
   { x: 8.3, y: FLOOR2_Y + 2.75, z: -29.68, ry: Math.PI, title: 'الغرفة ٣١٢', code: 'ROOM 312', accent: '#8a2c24' },
 ];
 

@@ -12,6 +12,69 @@ import { PlayerController } from './systems/player.js';
 import { StorySystem } from './systems/story.js';
 import { MapRenderer } from './systems/mapUI.js';
 import { HudManager } from './systems/hud.js';
+import { clamp, lerp, smoothstep } from './utils/math.js';
+
+function tryEnterFullscreen() {
+  try {
+    const docEl = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+      if (req) {
+        const res = req.call(docEl, { navigationUI: 'hide' });
+        if (res && typeof res.catch === 'function') res.catch(() => {});
+      }
+    }
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+  } catch {
+    // Gracefully ignored if browser blocks fullscreen
+  }
+}
+
+/**
+ * Guarantees smooth touch-dragging scroll inside Settings/Dossier/Notes
+ * even when Android Chrome renders inside CSS rotate(90deg) portrait mode!
+ */
+function bindRotatedScroll() {
+  document.querySelectorAll('.scrollable').forEach((el) => {
+    let activeId = null;
+    let lastPos = 0;
+    el.addEventListener(
+      'touchstart',
+      (e) => {
+        if (e.target.closest('input, button')) return;
+        const t = e.changedTouches[0];
+        if (!t) return;
+        activeId = t.identifier;
+        const isRot = document.body.classList.contains('rot');
+        lastPos = isRot ? t.clientX : t.clientY;
+      },
+      { passive: true }
+    );
+    el.addEventListener(
+      'touchmove',
+      (e) => {
+        if (activeId === null) return;
+        const isRot = document.body.classList.contains('rot');
+        if (!isRot) return; // Native smooth vertical scroll works in normal landscape
+        for (const t of e.changedTouches) {
+          if (t.identifier === activeId) {
+            // In 90deg clockwise rotation, visual vertical scroll axis maps to horizontal clientX!
+            const delta = t.clientX - lastPos;
+            lastPos = t.clientX;
+            el.scrollTop += delta;
+            e.preventDefault();
+          }
+        }
+      },
+      { passive: false }
+    );
+    const stop = () => { activeId = null; };
+    el.addEventListener('touchend', stop, { passive: true });
+    el.addEventListener('touchcancel', stop, { passive: true });
+  });
+}
 
 function boot() {
   const container = document.getElementById('game-container');
@@ -24,7 +87,7 @@ function boot() {
   const audio = new AudioEngine();
   const hud = new HudManager();
 
-  // 2. Build complete handcrafted world: Forest -> Muddy Road -> Exterior -> Real 2-Story Hospital + Props
+  // 2. Build handcrafted world
   buildForestAndRoad(engine, mats, physics);
   buildHospitalExterior(engine, mats, physics);
   buildHospitalArchitecture(engine, mats, physics);
@@ -45,8 +108,8 @@ function boot() {
   const mapUI = new MapRenderer(document.getElementById('mapCanvas'), clueObjects);
 
   player.resetSpawn();
+  bindRotatedScroll();
 
-  // Landscape orientation helper for mobile phones
   function handleResize() {
     const rot = window.innerHeight > window.innerWidth && window.innerWidth < 820;
     document.body.classList.toggle('rot', rot);
@@ -57,20 +120,96 @@ function boot() {
   window.addEventListener('resize', handleResize);
   window.addEventListener('orientationchange', () => setTimeout(handleResize, 120));
 
-  // ===== UI EVENT BINDINGS =====
-  function startNewRun() {
+  // Auto-Fullscreen immediately on first touch/click anywhere in the app!
+  const autoFs = () => {
+    tryEnterFullscreen();
+  };
+  window.addEventListener('pointerdown', autoFs, { passive: true });
+  window.addEventListener('touchstart', autoFs, { passive: true });
+
+  // ===== SMOOTH FRAME-BY-FRAME OPENING CINEMATIC =====
+  let introLightClicked = false;
+
+  function finishIntroToPlay() {
+    if (STATE.phase !== 'intro') return;
+    STATE.phase = 'play';
+    STATE.lightOn = true;
+    PLAYER.yaw = -0.34;
+    PLAYER.pitch = -0.02;
+    hud.enterPlayMode();
+  }
+
+  function startNewRun(skipIntro = false) {
+    tryEnterFullscreen();
     audio.init();
     audio.uiClick();
-    STATE.phase = 'play';
     STATE.pt = 0;
     STATE.battMain = 100;
-    STATE.lightOn = true;
     STATE.paused = false;
     STATE.inMap = false;
     STATE.inNote = false;
+    STATE.inSettings = false;
     player.resetSpawn();
     story.reset();
-    hud.enterPlayMode();
+
+    if (skipIntro) {
+      STATE.phase = 'play';
+      STATE.lightOn = true;
+      hud.enterPlayMode();
+    } else {
+      STATE.phase = 'intro';
+      STATE.introTime = 0;
+      STATE.lightOn = false;
+      introLightClicked = false;
+      hud.enterIntroMode();
+    }
+  }
+
+  function updateIntroCinematic(dt) {
+    STATE.introTime += dt;
+    const t = STATE.introTime;
+
+    // 0.0 -> 1.5s: Smooth dark fade-in while slowly lifting head from pine ground
+    const curtainAlpha = 1 - smoothstep(0.15, 1.55, t);
+    hud.el.introCurtain.style.opacity = curtainAlpha.toFixed(3);
+
+    const riseT = smoothstep(0.25, 2.4, t);
+    const eyeH = lerp(1.02, PLAYER.eyeY, riseT);
+    const pitch = lerp(-0.56, -0.04, riseT) + Math.sin(t * 1.4) * 0.008;
+
+    // 1.45s: Mechanical flashlight click ON!
+    if (t >= 1.45 && !introLightClicked) {
+      introLightClicked = true;
+      STATE.lightOn = true;
+      audio.flashlightClick(true);
+    }
+
+    // 1.7s -> 4.9s: Smooth atmospheric glance left -> right -> locked onto foggy muddy path
+    let yaw = -0.34;
+    if (t < 2.2) {
+      yaw = lerp(-0.62, -0.45, smoothstep(0.3, 2.2, t));
+    } else if (t < 3.6) {
+      yaw = lerp(-0.45, -0.05, smoothstep(2.2, 3.6, t));
+    } else {
+      yaw = lerp(-0.05, -0.34, smoothstep(3.6, 5.0, t));
+    }
+
+    if (t > 1.7 && t < 4.8) {
+      hud.el.introCaption.textContent = 'ليلة ١٢ أكتوبر ١٩٩٤... لم يبقَ سوى هذا الطريق إلى مستشفى السدرة.';
+      hud.el.introCaption.classList.add('show');
+    } else {
+      hud.el.introCaption.classList.remove('show');
+    }
+
+    engine.camera.position.set(PLAYER.x, PLAYER.y + eyeH, PLAYER.z);
+    engine.camera.rotation.set(pitch, yaw, Math.sin(t * 1.1) * 0.012);
+    engine.updateLighting(dt, STATE.rt, PLAYER);
+    audio.updateEnvironment(dt, 0, 0.12, false);
+    engine.render();
+
+    if (t >= 5.2) {
+      finishIntroToPlay();
+    }
   }
 
   function toggleFlashlight() {
@@ -92,9 +231,10 @@ function boot() {
     }
   }
 
-  hud.el.btnStart.addEventListener('click', startNewRun);
-  hud.el.btnPlayAgain.addEventListener('click', startNewRun);
-  hud.el.btnRestart.addEventListener('click', startNewRun);
+  hud.el.btnStart.addEventListener('click', () => startNewRun(false));
+  hud.el.btnSkipIntro.addEventListener('click', () => { audio.uiClick(); finishIntroToPlay(); });
+  hud.el.btnPlayAgain.addEventListener('click', () => startNewRun(false));
+  hud.el.btnRestart.addEventListener('click', () => startNewRun(false));
   hud.el.btnTitleSettings.addEventListener('click', () => { audio.init(); audio.uiClick(); hud.openSettings('title'); });
   hud.el.btnPauseSettings.addEventListener('click', () => { audio.uiClick(); hud.openSettings('pause'); });
   hud.el.btnSetBack.addEventListener('click', () => { audio.uiClick(); hud.closeSettings(); });
@@ -110,7 +250,6 @@ function boot() {
   hud.el.btnMapX.addEventListener('click', toggleMap);
   hud.el.interactBtn.addEventListener('click', () => story.interactNearestClue());
 
-  // Map tab switchers with authentic paper rustle sound
   hud.el.tabForest.addEventListener('click', () => { audio.paperRustle(); hud.setActiveMapTab('forest'); mapUI.setTab('forest'); });
   hud.el.tabF1.addEventListener('click', () => { audio.paperRustle(); hud.setActiveMapTab('f1'); mapUI.setTab('f1'); });
   hud.el.tabF2.addEventListener('click', () => { audio.paperRustle(); hud.setActiveMapTab('f2'); mapUI.setTab('f2'); });
@@ -168,9 +307,9 @@ function boot() {
     });
   }
 
-  // Keyboard shortcuts
   window.addEventListener('keydown', (e) => {
     INPUT.keys[e.code] = true;
+    if (e.code === 'Space' && STATE.phase === 'intro') finishIntroToPlay();
     if (e.code === 'KeyF') toggleFlashlight();
     if (e.code === 'KeyM') toggleMap();
     if (e.code === 'KeyE') story.interactNearestClue();
@@ -192,8 +331,9 @@ function boot() {
     else audio.resume();
   });
 
-  // ===== THERMAL-CAPPED ADAPTIVE MAIN LOOP (30 / 45 / 60 / 90 FPS) =====
-  let lastRenderTime = performance.now();
+  // ===== TRUE 90/120 FPS + DRIFT-FREE PHASE-ACCUMULATED CAP FOR 30 / 45 / 60 FPS =====
+  let lastNow = performance.now();
+  let frameBudget = 0;
   let fpsFrames = 0;
   let fpsTimer = 0;
   let fpsValue = SETTINGS.fpsCap;
@@ -201,19 +341,28 @@ function boot() {
 
   function tick(now) {
     requestAnimationFrame(tick);
-    if (document.hidden) return;
+    if (document.hidden) {
+      lastNow = now;
+      return;
+    }
 
-    const minFrameMs = 1000 / Math.max(24, SETTINGS.fpsCap);
-    const elapsedMs = now - lastRenderTime;
-    if (elapsedMs < minFrameMs - 1.0) return;
-    lastRenderTime = now;
+    const rawMs = Math.min(now - lastNow, 100);
+    lastNow = now;
 
-    const dt = Math.min(elapsedMs / 1000, 0.05);
+    // When 90+ FPS is chosen, NEVER artificially skip frames so 90Hz/120Hz phones hit full 90-120 FPS!
+    if (SETTINGS.fpsCap < 90) {
+      const targetMs = 1000 / Math.max(24, SETTINGS.fpsCap);
+      frameBudget += rawMs;
+      if (frameBudget < targetMs) return;
+      frameBudget = Math.min(frameBudget - targetMs, targetMs);
+    }
+
+    const dt = clamp(rawMs / 1000, 0.001, 0.05);
     STATE.rt += dt;
 
     fpsFrames++;
-    fpsTimer += elapsedMs / 1000;
-    if (fpsTimer >= 0.5) {
+    fpsTimer += rawMs / 1000;
+    if (fpsTimer >= 0.45) {
       fpsValue = fpsFrames / fpsTimer;
       fpsFrames = 0;
       fpsTimer = 0;
@@ -230,14 +379,18 @@ function boot() {
 
     if (STATE.phase === 'title') {
       titleAngle += dt * 0.1;
-      const cx = 3.8 + Math.sin(titleAngle) * 2.6;
-      const cz = 14.5 + Math.cos(titleAngle * 0.7) * 1.2;
-      engine.camera.position.set(cx, 2.8 + Math.sin(titleAngle * 1.2) * 0.2, cz);
-      engine.camera.lookAt(-2.2, 3.0, -5.6);
-      // Handheld flashlight illuminates the ominous boarded hospital & crooked rusted sign on the Title Screen!
+      const cx = 3.8 + Math.sin(titleAngle) * 2.4;
+      const cz = 14.5 + Math.cos(titleAngle * 0.7) * 1.1;
+      engine.camera.position.set(cx, 2.75 + Math.sin(titleAngle * 1.2) * 0.16, cz);
+      engine.camera.lookAt(-1.8, 3.0, -5.6);
       STATE.lightOn = true;
       engine.updateLighting(dt, STATE.rt, engine.camera.position);
       engine.render();
+      return;
+    }
+
+    if (STATE.phase === 'intro') {
+      updateIntroCinematic(dt);
       return;
     }
 
@@ -252,17 +405,23 @@ function boot() {
     }
   }
 
-  // Expose clean inspection API for automated multi-round visual QA
+  // Inspection & Physics Verification API
   window.__SIDRA__ = {
-    start: () => startNewRun(),
+    start: (skipIntro = true) => startNewRun(skipIntro),
+    startIntroAt: (sec) => {
+      startNewRun(false);
+      STATE.introTime = sec;
+      updateIntroCinematic(0.016);
+    },
     setView: (x, y, z, yaw, pitch = -0.04, lightOn = true) => {
-      if (STATE.phase !== 'play') startNewRun();
+      if (STATE.phase !== 'play') startNewRun(true);
       STATE.paused = false;
       STATE.inMap = false;
       hud.closeMap();
       STATE.lightOn = lightOn;
       STATE.subTimer = 0;
       hud.setSubtitle('');
+      hud.el.objective.classList.add('hidden');
       player.teleport(x, y, z, yaw, pitch);
       engine.camera.position.set(x, y + PLAYER.eyeY, z);
       engine.camera.rotation.set(pitch, yaw, 0);
@@ -275,9 +434,41 @@ function boot() {
       engine.render();
     },
     openMapTab: (tab) => {
-      if (STATE.phase !== 'play') startNewRun();
+      if (STATE.phase !== 'play') startNewRun(true);
       hud.openMap(tab);
       mapUI.setTab(tab);
+    },
+    openSettings: () => {
+      hud.openSettings('title');
+    },
+    // Automated walk-test proving ZERO invisible walls from Floor 1 Spine -> Stairs -> Floor 2 Landing -> Room 312!
+    testStairWalk: () => {
+      let px = 0.0, py = 0.0, pz = -31.8;
+      const waypoints = [
+        [-8.3, -31.8],  // Enter Main Stairwell from Clinical Spine
+        [-8.3, -39.6],  // Climb straight up stairs to Floor 2 top landing (Y -> 3.6)
+        [-8.3, -40.5],  // Step onto top landing
+        [-4.2, -40.5],  // Turn east into f2_landing
+        [-4.2, -32.0],  // Walk south into Floor 2 Upper Corridor
+        [8.3, -32.0],   // Walk east to Room 312 doorway
+        [8.3, -26.0],   // Enter Room 312!
+      ];
+      const trace = [];
+      for (const [tx, tz] of waypoints) {
+        for (let step = 0; step < 120; step++) {
+          const dx = tx - px, dz = tz - pz;
+          const dist = Math.hypot(dx, dz);
+          if (dist < 0.25) break;
+          const s = Math.min(0.18, dist);
+          const next = physics.moveAndSlide(px, py, pz, (dx / dist) * s, (dz / dist) * s);
+          px = next.x; py = next.y; pz = next.z;
+        }
+        trace.push({ target: [tx, tz], reached: [Number(px.toFixed(2)), Number(py.toFixed(2)), Number(pz.toFixed(2))], ok: Math.hypot(tx - px, tz - pz) < 0.35 });
+      }
+      // Also test gate iron leaf collision (walking straight into closed bar vs center opening)
+      const gateCenter = physics.isFree(0, 0, 7.6);
+      const gateBarBlocked = !physics.isFree(-3.0, 0, 7.2);
+      return { trace, allWaypointsReached: trace.every((t) => t.ok), gateCenterWalkable: gateCenter, gateIronBlocked: gateBarBlocked };
     },
     getStats: () => ({
       calls: engine.renderer.info.render.calls,

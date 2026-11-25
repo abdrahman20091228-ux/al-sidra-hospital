@@ -51,16 +51,20 @@ export function buildHospitalArchitecture(engine, mats, physics) {
     batch.addBox(pickFloorMat(room.floorStyle), w, 0.08, d, cx, baseY - 0.04, cz, 0, 2.4, false, true);
 
     if (room.id === 'scrub') {
+      // Leave stairwell shaft (x: -10.5..-6.5, z: -42..-32.8) open vertically to Floor 2 ceiling!
       const ew = -2.2 - -6.5;
       batch.addBox(mats.ceilingTile, ew, 0.14, d, -6.5 + ew * 0.5, baseY + WALL_H + 0.07, cz, 0, 2.4, false, true);
-      const sd = -29.5 - -34.4;
-      batch.addBox(mats.ceilingTile, 4.0, 0.14, sd, -8.5, baseY + WALL_H + 0.07, -34.4 + sd * 0.5, 0, 2.4, false, true);
+      const sd = -29.5 - -32.8;
+      batch.addBox(mats.ceilingTile, 4.0, 0.14, sd, -8.5, baseY + WALL_H + 0.07, -32.8 + sd * 0.5, 0, 2.4, false, true);
     } else {
       batch.addBox(mats.ceilingTile, w, 0.14, d, cx, baseY + WALL_H + 0.07, cz, 0, 2.4, false, true);
     }
   });
+  // Floor 2 top stairwell landing floor slab (x: -10.5..-6.5, z: -42.0..-39.15) & high shaft ceiling
+  batch.addBox(mats.hospitalFloor, 4.0, 0.12, 2.85, -8.5, FLOOR2_Y - 0.06, -40.575, 0, 2.4, false, true);
+  batch.addBox(mats.ceilingTile, 4.0, 0.14, 9.2, -8.5, FLOOR2_Y + WALL_H + 0.07, -37.4, 0, 2.4, false, true);
 
-  // ===== 2. ARCHITECTURAL WALL BUILDER WITH CLEAN DADO MAPPING & OPEN DOOR LEAVES =====
+  // ===== 2. ARCHITECTURAL WALL BUILDER (USES addWallBox WITH SAFE BUFFER -> ZERO WALL CLIPPING!) =====
   function buildWallSegment(spec, baseY) {
     const isHoriz = Math.abs(spec.z1 - spec.z2) < 0.01;
     const thick = spec.thickness || 0.24;
@@ -87,20 +91,22 @@ export function buildHospitalArchitecture(engine, mats, physics) {
       const mid = (a + b) * 0.5;
       const cy = baseY + y0 + h * 0.5;
       const fullH = y0 === 0 && h > 2.8;
+      // Extra +0.06m collider half-thickness ensures inner linings & edges NEVER clip into camera near-plane!
+      const colHalf = thick * 0.5 + 0.06;
       if (isHoriz) {
         batch.addBox(wallMat, len, h, thick, mid, cy, fixed, 0, tileS, true, true, 0, 0, dadoFit && fullH);
         if (addTrim && y0 === 0 && h > 1.2) {
-          batch.addBox(mats.bumperRail, len, 0.11, thick + 0.05, mid, baseY + 1.36, fixed, 0, 2.2, false, true);
-          batch.addBox(mats.bumperRail, len, 0.14, thick + 0.04, mid, baseY + 0.07, fixed, 0, 2.2, false, true);
+          batch.addBox(mats.bumperRail, len, 0.11, thick + 0.04, mid, baseY + 1.36, fixed, 0, 2.2, false, true);
+          batch.addBox(mats.bumperRail, len, 0.14, thick + 0.03, mid, baseY + 0.07, fixed, 0, 2.2, false, true);
         }
-        if (addCollider) physics.addBox(a, baseY + y0, fixed - thick * 0.55, b, baseY + y1, fixed + thick * 0.55);
+        if (addCollider) physics.addWallBox(a, baseY + y0, fixed - colHalf, b, baseY + y1, fixed + colHalf);
       } else {
         batch.addBox(wallMat, thick, h, len, fixed, cy, mid, 0, tileS, true, true, 0, 0, dadoFit && fullH);
         if (addTrim && y0 === 0 && h > 1.2) {
-          batch.addBox(mats.bumperRail, thick + 0.05, 0.11, len, fixed, baseY + 1.36, mid, 0, 2.2, false, true);
-          batch.addBox(mats.bumperRail, thick + 0.04, 0.14, len, fixed, baseY + 0.07, mid, 0, 2.2, false, true);
+          batch.addBox(mats.bumperRail, thick + 0.04, 0.11, len, fixed, baseY + 1.36, mid, 0, 2.2, false, true);
+          batch.addBox(mats.bumperRail, thick + 0.03, 0.14, len, fixed, baseY + 0.07, mid, 0, 2.2, false, true);
         }
-        if (addCollider) physics.addBox(fixed - thick * 0.55, baseY + y0, a, fixed + thick * 0.55, baseY + y1, b);
+        if (addCollider) physics.addWallBox(fixed - colHalf, baseY + y0, a, fixed + colHalf, baseY + y1, b);
       }
     }
 
@@ -115,7 +121,7 @@ export function buildHospitalArchitecture(engine, mats, physics) {
 
       const mid = (a + b) * 0.5;
       const opH = op.topY - op.sillY;
-      const frameT = thick + 0.07;
+      const frameT = thick + 0.06;
 
       if (op.type === 'door') {
         if (isHoriz) {
@@ -126,7 +132,6 @@ export function buildHospitalArchitecture(engine, mats, physics) {
             const leafW = Math.min(0.95, op.width * 0.46);
             batch.addBox(mats.paintedMetal, leafW, opH - 0.08, 0.06, a + 0.12, baseY + (opH - 0.08) * 0.5, fixed - leafW * 0.45, 1.18, 1.5);
           } else {
-            // Broken main entrance glass sliding doors stuck half-open
             batch.addBox(mats.darkMetal, 0.95, opH - 0.08, 0.07, a + 0.52, baseY + (opH - 0.08) * 0.5, fixed - 0.16, 0, 1);
             batch.addBox(mats.glassClear, 0.78, opH - 0.36, 0.03, a + 0.52, baseY + opH * 0.5, fixed - 0.16, 0, 1, false, false);
             batch.addBox(mats.darkMetal, 0.95, opH - 0.08, 0.07, b - 0.52, baseY + (opH - 0.08) * 0.5, fixed - 0.16, 0.08, 1);
@@ -149,7 +154,7 @@ export function buildHospitalArchitecture(engine, mats, physics) {
           batch.addBox(mats.darkMetal, 0.08, opH, frameT, b - 0.04, wy, fixed, 0, 1);
           batch.addBox(mats.darkMetal, 0.06, opH, 0.09, mid, wy, fixed, 0, 1);
           batch.addBox(mats.glassClear, op.width - 0.12, opH - 0.12, 0.04, mid, wy, fixed, 0, 1, false, false);
-          physics.addBox(a, baseY + op.sillY, fixed - thick * 0.5, b, baseY + op.topY, fixed + thick * 0.5);
+          physics.addWallBox(a, baseY + op.sillY, fixed - thick * 0.55, b, baseY + op.topY, fixed + thick * 0.55);
         } else {
           batch.addBox(mats.facadeTrim, frameT + 0.08, 0.1, op.width + 0.16, fixed, baseY + op.sillY + 0.02, mid, 0, 1.5);
           batch.addBox(mats.darkMetal, frameT, 0.08, op.width, fixed, baseY + op.topY - 0.03, mid, 0, 1);
@@ -157,7 +162,7 @@ export function buildHospitalArchitecture(engine, mats, physics) {
           batch.addBox(mats.darkMetal, frameT, opH, 0.08, fixed, wy, b - 0.04, 0, 1);
           batch.addBox(mats.darkMetal, 0.09, opH, 0.06, fixed, wy, mid, 0, 1);
           batch.addBox(mats.glassClear, 0.04, opH - 0.12, op.width - 0.12, fixed, wy, mid, 0, 1, false, false);
-          physics.addBox(fixed - thick * 0.5, baseY + op.sillY, a, fixed + thick * 0.5, baseY + op.topY, b);
+          physics.addWallBox(fixed - thick * 0.55, baseY + op.sillY, a, fixed + thick * 0.55, baseY + op.topY, b);
         }
       }
       cursor = Math.max(cursor, b);
@@ -168,21 +173,21 @@ export function buildHospitalArchitecture(engine, mats, physics) {
   WALLS_F1.forEach((w) => buildWallSegment(w, 0));
   WALLS_F2.forEach((w) => buildWallSegment(w, FLOOR2_Y));
 
-  // ===== 2B. INTERIOR CLADDING ON ALL PERIMETER WALLS (MATCHING EACH ROOM'S FINISH!) =====
+  // ===== 2B. FLUSH INTERIOR CLADDING ON PERIMETER WALLS (TIGHTLY BACKED BY WALL COLLIDERS -> ZERO CLIPPING!) =====
   const innerLinings = [
-    { x: -23.75, z0: -16, z1: -6, axis: 'z', mat: mats.corridorWall, dado: true, win: [-11] },
-    { x: -23.75, z0: -29.5, z1: -19.6, axis: 'z', mat: mats.sterileTile, dado: false, win: [-24.5] },
-    { x: -23.75, z0: -42, z1: -29.5, axis: 'z', mat: mats.sterileTile, dado: false, win: [-35.8] },
-    { z: -41.75, x0: -24, x1: -10.5, axis: 'x', mat: mats.sterileTile, dado: false, win: [-17.2] },
-    { z: -41.75, x0: -10.5, x1: -2.2, axis: 'x', mat: mats.sterileTile, dado: false, win: [] },
-    { z: -41.75, x0: 2.2, x1: 14.5, axis: 'x', mat: mats.morgueTile, dado: false, win: [8.4] },
-    { z: -41.75, x0: 14.5, x1: 24, axis: 'x', mat: mats.adminWall, dado: true, win: [19.2] },
-    { x: 23.75, z0: -16, z1: -6, axis: 'z', mat: mats.corridorWall, dado: true, win: [-11] },
-    { x: 23.75, z0: -29.5, z1: -19.6, axis: 'z', mat: mats.wardWall, dado: true, win: [-24.5] },
-    { x: 23.75, z0: -42, z1: -29.5, axis: 'z', mat: mats.adminWall, dado: true, win: [-35.8] },
-    // Morgue west interior wall clad in cold morgue tiles
-    { x: 2.35, z0: -33.0, z1: -29.6, axis: 'z', mat: mats.morgueTile, dado: false, win: [] },
-    { x: 2.35, z0: -41.7, z1: -35.4, axis: 'z', mat: mats.morgueTile, dado: false, win: [] },
+    { x: -23.76, z0: -16, z1: -6, axis: 'z', mat: mats.corridorWall, dado: true, win: [-11] },
+    { x: -23.76, z0: -29.5, z1: -19.6, axis: 'z', mat: mats.sterileTile, dado: false, win: [-24.5] },
+    { x: -23.76, z0: -42, z1: -29.5, axis: 'z', mat: mats.sterileTile, dado: false, win: [-35.8] },
+    { z: -41.76, x0: -24, x1: -10.5, axis: 'x', mat: mats.sterileTile, dado: false, win: [-17.2] },
+    { z: -41.76, x0: -10.5, x1: -2.2, axis: 'x', mat: mats.sterileTile, dado: false, win: [] },
+    { z: -41.76, x0: 2.2, x1: 14.5, axis: 'x', mat: mats.morgueTile, dado: false, win: [8.4] },
+    { z: -41.76, x0: 14.5, x1: 24, axis: 'x', mat: mats.adminWall, dado: true, win: [19.2] },
+    { x: 23.76, z0: -16, z1: -6, axis: 'z', mat: mats.corridorWall, dado: true, win: [-11] },
+    { x: 23.76, z0: -29.5, z1: -19.6, axis: 'z', mat: mats.wardWall, dado: true, win: [-24.5] },
+    { x: 23.76, z0: -42, z1: -29.5, axis: 'z', mat: mats.adminWall, dado: true, win: [-35.8] },
+    // Morgue west interior wall flush cladding
+    { x: 2.34, z0: -33.0, z1: -29.6, axis: 'z', mat: mats.morgueTile, dado: false, win: [] },
+    { x: 2.34, z0: -41.7, z1: -35.4, axis: 'z', mat: mats.morgueTile, dado: false, win: [] },
   ];
   innerLinings.forEach((ln) => {
     const start = ln.axis === 'x' ? ln.x0 : ln.z0;
@@ -196,13 +201,13 @@ export function buildHospitalArchitecture(engine, mats, physics) {
       const cy = y0 + h * 0.5;
       const fullH = y0 === 0 && h > 2.8;
       if (ln.axis === 'x') {
-        batch.addBox(ln.mat, len, h, 0.04, mid, cy, ln.z, 0, ln.dado ? 3.8 : 2.4, false, true, 0, 0, ln.dado && fullH);
-        if (y0 === 0 && h > 1.2) batch.addBox(mats.bumperRail, len, 0.11, 0.07, mid, 1.36, ln.z + 0.02, 0, 2, false, true);
+        batch.addBox(ln.mat, len, h, 0.03, mid, cy, ln.z, 0, ln.dado ? 3.8 : 2.4, false, true, 0, 0, ln.dado && fullH);
+        if (y0 === 0 && h > 1.2) batch.addBox(mats.bumperRail, len, 0.11, 0.05, mid, 1.36, ln.z + 0.015, 0, 2, false, true);
       } else {
-        batch.addBox(ln.mat, 0.04, h, len, ln.x, cy, mid, 0, ln.dado ? 3.8 : 2.4, false, true, 0, 0, ln.dado && fullH);
+        batch.addBox(ln.mat, 0.03, h, len, ln.x, cy, mid, 0, ln.dado ? 3.8 : 2.4, false, true, 0, 0, ln.dado && fullH);
         if (y0 === 0 && h > 1.2) {
-          const sx = ln.x < 0 ? ln.x + 0.02 : ln.x - 0.02;
-          batch.addBox(mats.bumperRail, 0.07, 0.11, len, sx, 1.36, mid, 0, 2, false, true);
+          const sx = ln.x < 0 ? ln.x + 0.015 : ln.x - 0.015;
+          batch.addBox(mats.bumperRail, 0.05, 0.11, len, sx, 1.36, mid, 0, 2, false, true);
         }
       }
     };
@@ -216,7 +221,7 @@ export function buildHospitalArchitecture(engine, mats, physics) {
     if (cur < end) emitSpan(cur, end, 0, WALL_H);
   });
 
-  // ===== 2C. ASYMMETRIC SILENT HILL WALL GRIME & WATER-DAMAGE DECALS (BREAKS UP ALL REPETITION!) =====
+  // ===== 2C. ASYMMETRIC SILENT HILL WALL GRIME & WATER-DAMAGE DECALS =====
   const wallDecals = [
     { x: -6.8, y: 1.65, z: -15.84, ry: 0, w: 2.6, h: 2.8 },
     { x: 6.4, y: 1.55, z: -15.84, ry: 0, w: 2.4, h: 2.6 },
@@ -235,28 +240,60 @@ export function buildHospitalArchitecture(engine, mats, physics) {
     batch.addPlane(mats.decalGrime, d.w, d.h, d.x, d.y, d.z, 0, d.ry, 0, 0, false, true);
   });
 
-  // ===== 3. ARCHITECTURAL STAIRWELL (FLOOR 1 -> FLOOR 2) =====
+  // ===== 3. CLEAN FORWARD-CLIMBING CONCRETE HOSPITAL STAIRWELL (ZERO INVISIBLE WALLS!) =====
+  // Bottom step at zBottom = -33.2 (Y=0) climbing NORTH to zTop = -39.2 (Y=3.6), then turning EAST!
   const st = STAIRWELL_SPEC;
   const stW = st.x1 - st.x0;
   const stCx = (st.x0 + st.x1) * 0.5;
-  const stLen = st.zTop - st.zBottom;
+  const stLen = Math.abs(st.zTop - st.zBottom); // 6.0m
+  const dirZ = st.zTop < st.zBottom ? -1 : 1;   // -1 (northward)
   const stepD = stLen / st.steps;
   const stepH = FLOOR2_Y / st.steps;
   for (let i = 0; i < st.steps; i++) {
     const topY = (i + 1) * stepH;
-    const zCenter = st.zBottom + (i + 0.5) * stepD;
-    batch.addBox(mats.facadeTrim, stW - 0.12, topY, stepD + 0.03, stCx, topY * 0.5, zCenter, 0, 2.0);
-    batch.addBox(mats.bumperRail, stW - 0.16, 0.025, 0.06, stCx, topY + 0.01, zCenter - stepD * 0.45, 0, 1, false, false);
+    const zCenter = st.zBottom + dirZ * (i + 0.5) * stepD;
+    batch.addBox(mats.facadeTrim, stW - 0.1, topY, stepD + 0.03, stCx, topY * 0.5, zCenter, 0, 2.0);
+    batch.addBox(mats.bumperRail, stW - 0.14, 0.025, 0.05, stCx, topY + 0.01, zCenter - dirZ * stepD * 0.45, 0, 1, false, false);
   }
-  batch.addBox(mats.corridorWall, 0.18, FLOOR2_Y + 0.9, stLen + 0.4, st.x1 + 0.08, (FLOOR2_Y + 0.9) * 0.5, (st.zBottom + st.zTop) * 0.5, 0, 3.6);
-  physics.addBox(st.x1 - 0.02, 0, st.zBottom, st.x1 + 0.22, FLOOR2_Y + 1.2, st.zTop);
+  // Under-landing concrete enclosure on Floor 1 (z = -42..-39.2, y = 0..3.4) so you don't walk under the top landing
+  batch.addBox(mats.corridorWall, stW + 0.2, 3.45, 2.8, stCx, 1.725, -40.6, 0, 3.2);
+  physics.addWallBox(st.x0 - 0.1, 0, -42.0, st.x1 + 0.15, 3.4, -39.25);
 
+  // Side stair balustrade wall ONLY along the flight (x = st.x1 + 0.1, z = -39.1..-33.2) — OPEN east at top landing (-42..-39.2)!
+  batch.addBox(mats.corridorWall, 0.2, FLOOR2_Y + 0.85, stLen, st.x1 + 0.12, (FLOOR2_Y + 0.85) * 0.5, (st.zBottom + st.zTop) * 0.5, 0, 3.6);
+  physics.addWallBox(st.x1 - 0.02, 0, st.zTop + 0.1, st.x1 + 0.24, FLOOR2_Y + 1.2, st.zBottom);
+
+  // Rusted tubular handrails on both sides of the stair flight
   const slopeAng = Math.atan2(FLOOR2_Y, stLen);
   const railLen = Math.hypot(FLOOR2_Y, stLen);
   for (const rx of [st.x0 + 0.14, st.x1 - 0.14]) {
-    batch.addCylinder(mats.rustedMetal, 0.032, 0.032, railLen, 8, rx, FLOOR2_Y * 0.5 + 0.92, (st.zBottom + st.zTop) * 0.5, Math.PI / 2 - slopeAng, 0, 0, false, false);
+    batch.addCylinder(
+      mats.rustedMetal,
+      0.032,
+      0.032,
+      railLen,
+      8,
+      rx,
+      FLOOR2_Y * 0.5 + 0.92,
+      (st.zBottom + st.zTop) * 0.5,
+      -(Math.PI / 2 - slopeAng),
+      0,
+      0,
+      false,
+      false
+    );
   }
-  physics.addStair({ x0: st.x0 - 0.1, x1: st.x1 + 0.1, z0: st.zBottom - 0.25, z1: st.zTop + 0.25, axis: 'z', start: st.zBottom, end: st.zTop, yStart: 0, yEnd: FLOOR2_Y });
+  physics.addStair({
+    x0: st.x0 - 0.15,
+    x1: st.x1 + 0.15,
+    z0: Math.min(st.zBottom, st.zTop) - 0.35,
+    z1: Math.max(st.zBottom, st.zTop) + 0.35,
+    axis: 'z',
+    start: st.zBottom,
+    end: st.zTop,
+    yStart: 0,
+    yEnd: FLOOR2_Y,
+  });
 
   // ===== 4. LOBBY COLUMNS, RUSTED OVERHEAD HVAC DUCTS & DEAD/BROKEN FLUORESCENT FIXTURES (ZERO LIGHT!) =====
   for (const [cx, cz] of [[-4.8, -15.6], [4.8, -15.6], [-4.8, -9.2], [4.8, -9.2]]) {

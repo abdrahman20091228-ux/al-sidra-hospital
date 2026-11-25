@@ -55,106 +55,101 @@ export function createMaterialLibrary(maxAnisotropy = 4) {
   }
 
   const mats = {
-    // ===== FOREST & 3D-RELIEF MUDDY ROAD =====
-    forestGround: pbr('forest_ground', { roughness: 1.0, roughMap: true, metalness: 0.0, normalScale: 1.85, color: 0xa4ab94 }),
-    mudRoad: pbr('mud_road', { roughness: 1.0, roughMap: true, metalness: 0.16, normalScale: 2.75, color: 0xe2c4a2 }),
+    // ===== FOREST & ANTI-ALIASED 3D-RELIEF MUDDY ROAD (ZERO MOBILE SHIMMER!) =====
+    forestGround: pbr('forest_ground', { roughness: 1.0, roughMap: true, metalness: 0.0, normalScale: 0.95, color: 0xa4aa94 }),
+    mudRoad: pbr('mud_road', { roughness: 1.0, roughMap: true, metalness: 0.08, normalScale: 1.15, color: 0xd0b89e }),
     mudPuddle: new THREE.MeshStandardMaterial({
       map: loadTex('decal_puddle.png', true, 1, 1),
-      color: 0x627a84,
-      roughness: 0.08,
-      metalness: 0.52,
+      color: 0x465860,
+      roughness: 0.14,
+      metalness: 0.42,
       transparent: true,
-      opacity: 0.82,
+      opacity: 0.78,
       depthWrite: false,
       polygonOffset: true,
       polygonOffsetFactor: -1,
     }),
-    treeBark: pbr('tree_bark', { roughness: 0.96, metalness: 0.0, normalScale: 1.55, color: 0xb0a090 }),
-    pineFoliage: pbr('pine_foliage', { roughness: 0.9, metalness: 0.0, normalScale: 0.9, color: 0x869e82 }),
-    fernLeaf: (() => {
-      const c = createCanvas(256, 256);
-      const ctx = c.getContext('2d');
-      ctx.clearRect(0, 0, 256, 256);
-      const fronds = [-0.66, -0.34, 0, 0.34, 0.66];
-      fronds.forEach((ang, fi) => {
-        ctx.save();
-        ctx.translate(128, 252);
-        ctx.rotate(ang);
-        const len = fi === 2 ? 226 : fi === 1 || fi === 3 ? 196 : 162;
-        ctx.strokeStyle = '#253822';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.quadraticCurveTo(ang * 25, -len * 0.5, ang * 45, -len);
-        ctx.stroke();
-        for (let t = 0.14; t < 0.96; t += 0.075) {
-          const y = -len * t;
-          const x = ang * 45 * t * t;
-          const leafW = (1 - Math.abs(t - 0.45)) * 34;
-          ctx.fillStyle = t > 0.6 ? '#3a5434' : '#2a4026';
-          ctx.beginPath();
-          ctx.ellipse(x - leafW * 0.5, y, leafW * 0.55, 5.5, -0.35, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.ellipse(x + leafW * 0.5, y, leafW * 0.55, 5.5, 0.35, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-      });
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      return new THREE.MeshStandardMaterial({
-        map: tex,
-        alphaTest: 0.35,
-        roughness: 0.88,
-        metalness: 0.0,
-        side: THREE.DoubleSide,
-      });
-    })(),
-    mossRock: pbr('facade_concrete', { roughness: 1.0, roughMap: true, metalness: 0.02, normalScale: 1.45, color: 0x626b60 }),
+    treeBark: pbr('tree_bark', { roughness: 0.96, metalness: 0.0, normalScale: 1.25, color: 0x9e8f80 }),
+    pineBough: new THREE.MeshStandardMaterial({
+      map: loadTex('pine_bough.png', true, 1, 1),
+      alphaTest: 0.36,
+      roughness: 0.92,
+      metalness: 0.0,
+      side: THREE.DoubleSide,
+      color: 0x8ea088,
+    }),
+    forestShrub: new THREE.MeshStandardMaterial({
+      map: loadTex('forest_shrub.png', true, 1, 1),
+      alphaTest: 0.34,
+      roughness: 0.94,
+      metalness: 0.0,
+      side: THREE.DoubleSide,
+      color: 0x8a927e,
+    }),
+    mossRock: pbr('facade_concrete', { roughness: 1.0, roughMap: true, metalness: 0.02, normalScale: 1.2, color: 0x565e54 }),
 
     // ===== ABANDONED EXTERIOR =====
-    asphalt: pbr('asphalt', { roughness: 1.0, roughMap: true, metalness: 0.05, normalScale: 1.1, color: 0x9aa0a6 }),
-    facadeConcrete: pbr('facade_concrete', { roughness: 1.0, roughMap: true, metalness: 0.03, normalScale: 1.05, color: 0xc2beb2 }),
-    facadeTrim: pbr('facade_concrete', { roughness: 0.9, metalness: 0.04, normalScale: 0.85, color: 0x848682 }),
-    ironFence: pbr('rusted_metal', { roughness: 1.0, roughMap: true, metalness: 0.55, normalScale: 0.9, color: 0x6c584c }),
-    boardWood: pbr('aged_wood', { roughness: 1.0, roughMap: true, metalness: 0.02, normalScale: 1.05, color: 0xae967a }),
+    asphalt: pbr('asphalt', { roughness: 1.0, roughMap: true, metalness: 0.04, normalScale: 1.15, color: 0xb0b4b6 }),
+    facadeConcrete: pbr('facade_concrete', { roughness: 1.0, roughMap: true, metalness: 0.03, normalScale: 1.0, color: 0xbbb7aa }),
+    facadeTrim: pbr('facade_concrete', { roughness: 0.9, metalness: 0.04, normalScale: 0.8, color: 0x7c7e7a }),
+    ironFence: pbr('rusted_metal', { roughness: 1.0, roughMap: true, metalness: 0.55, normalScale: 0.85, color: 0x6c584c }),
+    boardWood: pbr('aged_wood', { roughness: 1.0, roughMap: true, metalness: 0.02, normalScale: 0.95, color: 0xa68e74 }),
 
     // ===== SILENT HILL HOSPITAL INTERIORS (SMOOTH DECAYING BROOKHAVEN PLASTER + DADO WALLS!) =====
-    corridorWall: pbr('corridor_wall', { roughness: 1.0, roughMap: true, metalness: 0.02, normalScale: 0.68, clampY: true, color: 0xd6d4c8 }),
-    wardWall: pbr('ward_wall', { roughness: 1.0, roughMap: true, metalness: 0.02, normalScale: 0.68, clampY: true, color: 0xcacabe }),
-    adminWall: pbr('ward_wall', { roughness: 1.0, roughMap: true, metalness: 0.02, normalScale: 0.65, clampY: true, color: 0xc2b09a }),
-    sterileTile: pbr('sterile_tile', { roughness: 1.0, roughMap: true, metalness: 0.08, normalScale: 0.95, color: 0xbfc9c2 }),
-    morgueTile: pbr('morgue_tile', { roughness: 1.0, roughMap: true, metalness: 0.12, normalScale: 0.95, color: 0xa0aeb6 }),
-    hospitalFloor: pbr('hospital_floor', { roughness: 1.0, roughMap: true, metalness: 0.06, normalScale: 0.88, color: 0xb8b6aa }),
-    sterileFloor: pbr('sterile_tile', { roughness: 1.0, roughMap: true, metalness: 0.08, normalScale: 0.85, color: 0xa2aeaa }),
-    morgueFloor: pbr('morgue_tile', { roughness: 1.0, roughMap: true, metalness: 0.12, normalScale: 0.88, color: 0x86949c }),
-    ceilingTile: pbr('ceiling_tile', { roughness: 0.95, metalness: 0.02, normalScale: 0.95, color: 0xaba79b }),
-    bumperRail: pbr('dark_leather', { roughness: 1.0, roughMap: true, metalness: 0.12, normalScale: 0.45, color: 0x505856 }),
+    corridorWall: pbr('corridor_wall', { roughness: 1.0, roughMap: true, metalness: 0.02, normalScale: 0.62, clampY: true, color: 0xd6d4c8 }),
+    wardWall: pbr('ward_wall', { roughness: 1.0, roughMap: true, metalness: 0.02, normalScale: 0.62, clampY: true, color: 0xcacabe }),
+    adminWall: pbr('ward_wall', { roughness: 1.0, roughMap: true, metalness: 0.02, normalScale: 0.6, clampY: true, color: 0xc2b09a }),
+    sterileTile: pbr('sterile_tile', { roughness: 1.0, roughMap: true, metalness: 0.08, normalScale: 0.88, color: 0xbfc9c2 }),
+    morgueTile: pbr('morgue_tile', { roughness: 1.0, roughMap: true, metalness: 0.12, normalScale: 0.88, color: 0xa0aeb6 }),
+    hospitalFloor: pbr('hospital_floor', { roughness: 1.0, roughMap: true, metalness: 0.06, normalScale: 0.8, color: 0xb8b6aa }),
+    sterileFloor: pbr('sterile_tile', { roughness: 1.0, roughMap: true, metalness: 0.08, normalScale: 0.78, color: 0xa2aeaa }),
+    morgueFloor: pbr('morgue_tile', { roughness: 1.0, roughMap: true, metalness: 0.12, normalScale: 0.82, color: 0x86949c }),
+    ceilingTile: pbr('ceiling_tile', { roughness: 0.95, metalness: 0.02, normalScale: 0.88, color: 0xaba79b }),
+    bumperRail: pbr('dark_leather', { roughness: 1.0, roughMap: true, metalness: 0.12, normalScale: 0.42, color: 0x505856 }),
 
     // ===== RICH TEXTURED PROP MATERIALS (ZERO FLAT UNTEXTURED BOXES!) =====
-    agedWood: pbr('aged_wood', { roughness: 1.0, roughMap: true, metalness: 0.03, normalScale: 0.85, color: 0xc2ac90 }),
-    darkWood: pbr('aged_wood', { roughness: 1.0, roughMap: true, metalness: 0.04, normalScale: 0.8, color: 0x826850 }),
-    rustedMetal: pbr('rusted_metal', { roughness: 1.0, roughMap: true, metalness: 0.56, normalScale: 0.9, color: 0xcab8a8 }),
-    stainlessSteel: pbr('brushed_steel', { roughness: 1.0, roughMap: true, metalness: 0.78, normalScale: 0.42, color: 0xd0d8d8 }),
-    paintedMetal: pbr('chipped_enamel', { roughness: 1.0, roughMap: true, metalness: 0.28, normalScale: 0.62, color: 0xb6c0b8 }),
-    darkMetal: pbr('rusted_metal', { roughness: 1.0, roughMap: true, metalness: 0.6, normalScale: 0.75, color: 0x5c5854 }),
-    redRustMetal: pbr('rusted_metal', { roughness: 1.0, roughMap: true, metalness: 0.42, normalScale: 0.85, color: 0x983e36 }),
-    fabricSheet: pbr('fabric_sheet', { roughness: 0.95, metalness: 0.0, normalScale: 0.55, color: 0xc8c0ac }),
-    blanketGreen: pbr('fabric_sheet', { roughness: 0.96, metalness: 0.0, normalScale: 0.6, color: 0x5a6858 }),
-    curtainTeal: pbr('fabric_sheet', { roughness: 0.94, metalness: 0.0, normalScale: 0.55, color: 0x6a7c72, side: THREE.DoubleSide }),
-    leatherDark: pbr('dark_leather', { roughness: 1.0, roughMap: true, metalness: 0.08, normalScale: 0.42, color: 0xa69c94 }),
-    plasticBeige: pbr('chipped_enamel', { roughness: 0.78, metalness: 0.08, normalScale: 0.4, color: 0xb0a68e }),
-    cardboardBox: pbr('cardboard_box', { roughness: 0.94, metalness: 0.0, normalScale: 0.65, color: 0xc6b498 }),
+    agedWood: pbr('aged_wood', { roughness: 1.0, roughMap: true, metalness: 0.03, normalScale: 0.8, color: 0xc2ac90 }),
+    darkWood: pbr('aged_wood', { roughness: 1.0, roughMap: true, metalness: 0.04, normalScale: 0.75, color: 0x826850 }),
+    rustedMetal: pbr('rusted_metal', { roughness: 1.0, roughMap: true, metalness: 0.56, normalScale: 0.85, color: 0xcab8a8 }),
+    stainlessSteel: pbr('brushed_steel', { roughness: 1.0, roughMap: true, metalness: 0.78, normalScale: 0.4, color: 0xd0d8d8 }),
+    paintedMetal: pbr('chipped_enamel', { roughness: 1.0, roughMap: true, metalness: 0.28, normalScale: 0.58, color: 0xb6c0b8 }),
+    darkMetal: pbr('rusted_metal', { roughness: 1.0, roughMap: true, metalness: 0.6, normalScale: 0.72, color: 0x5c5854 }),
+    redRustMetal: pbr('rusted_metal', { roughness: 1.0, roughMap: true, metalness: 0.42, normalScale: 0.8, color: 0x983e36 }),
+    fabricSheet: pbr('fabric_sheet', { roughness: 0.95, metalness: 0.0, normalScale: 0.5, color: 0xc8c0ac }),
+    blanketGreen: pbr('fabric_sheet', { roughness: 0.96, metalness: 0.0, normalScale: 0.55, color: 0x5a6858 }),
+    curtainTeal: pbr('fabric_sheet', { roughness: 0.94, metalness: 0.0, normalScale: 0.52, color: 0x6a7c72, side: THREE.DoubleSide }),
+    leatherDark: pbr('dark_leather', { roughness: 1.0, roughMap: true, metalness: 0.08, normalScale: 0.4, color: 0xa69c94 }),
+    plasticBeige: pbr('chipped_enamel', { roughness: 0.78, metalness: 0.08, normalScale: 0.38, color: 0xb0a68e }),
+    cardboardBox: pbr('cardboard_box', { roughness: 0.94, metalness: 0.0, normalScale: 0.6, color: 0xc6b498 }),
     paperWhite: new THREE.MeshStandardMaterial({
       map: loadTex('dirty_paper.jpg', true, 1, 1),
       roughness: 0.94,
       metalness: 0.0,
       side: THREE.DoubleSide,
     }),
-    medicineBlue: pbr('chipped_enamel', { roughness: 0.42, metalness: 0.14, normalScale: 0.35, color: 0x42667a }),
-    medicineAmber: pbr('rusted_metal', { roughness: 0.34, metalness: 0.12, normalScale: 0.35, color: 0x8a5224 }),
-    rubberTire: pbr('dark_leather', { roughness: 0.94, metalness: 0.04, normalScale: 0.55, color: 0x444446 }),
+    corkboard: new THREE.MeshStandardMaterial({
+      map: loadTex('corkboard.jpg', true, 1, 1),
+      roughness: 0.92,
+      metalness: 0.02,
+    }),
+    clockFace: new THREE.MeshStandardMaterial({
+      map: loadTex('clock_face.jpg', true, 1, 1),
+      roughness: 0.48,
+      metalness: 0.08,
+    }),
+    monitorDead: new THREE.MeshStandardMaterial({
+      map: loadTex('monitor_dead.jpg', true, 1, 1),
+      roughness: 0.32,
+      metalness: 0.22,
+    }),
+    headwallPanel: new THREE.MeshStandardMaterial({
+      map: loadTex('headwall_panel.jpg', true, 1, 1),
+      roughness: 0.64,
+      metalness: 0.2,
+    }),
+    medicineBlue: pbr('chipped_enamel', { roughness: 0.42, metalness: 0.14, normalScale: 0.32, color: 0x42667a }),
+    medicineAmber: pbr('rusted_metal', { roughness: 0.34, metalness: 0.12, normalScale: 0.32, color: 0x8a5224 }),
+    rubberTire: pbr('dark_leather', { roughness: 0.94, metalness: 0.04, normalScale: 0.5, color: 0x444446 }),
     glassClear: new THREE.MeshStandardMaterial({
       color: 0x0b1014,
       roughness: 0.24,
@@ -172,15 +167,18 @@ export function createMaterialLibrary(maxAnisotropy = 4) {
     }),
 
     // ===== DEAD UNPOWERED FIXTURES (ZERO ELECTRICITY IN THE ABANDONED HOSPITAL!) =====
-    lampOff: pbr('chipped_enamel', { roughness: 0.62, metalness: 0.12, normalScale: 0.4, color: 0x6a6e68 }),
-    exitDead: pbr('chipped_enamel', { roughness: 0.65, metalness: 0.15, normalScale: 0.4, color: 0x3f5246 }),
-    crtDead: pbr('dark_leather', { roughness: 0.22, metalness: 0.3, normalScale: 0.25, color: 0x222826 }),
+    lampOff: pbr('chipped_enamel', { roughness: 0.62, metalness: 0.12, normalScale: 0.38, color: 0x6a6e68 }),
+    exitDead: pbr('chipped_enamel', { roughness: 0.65, metalness: 0.15, normalScale: 0.38, color: 0x3f5246 }),
+    crtDead: new THREE.MeshStandardMaterial({
+      map: loadTex('monitor_dead.jpg', true, 1, 1),
+      roughness: 0.26,
+      metalness: 0.24,
+    }),
     xrayDead: new THREE.MeshStandardMaterial({
       map: loadTex('xray_film.jpg', true, 1, 1),
       roughness: 0.32,
       metalness: 0.08,
     }),
-    // Subtle warm-amber glint ONLY on interactive story cassette/files so player spots clues under flashlight
     clueFolder: new THREE.MeshStandardMaterial({
       map: loadTex('dirty_paper.jpg', true, 1, 1),
       color: 0xf2d692,
@@ -189,7 +187,7 @@ export function createMaterialLibrary(maxAnisotropy = 4) {
       roughness: 0.75,
     }),
 
-    // ===== WEATHERING DECALS (GRIME, WATER LEAKS, CREEPING IVY!) =====
+    // ===== WEATHERING DECALS (GRIME & WATER LEAKS ONLY — NO FAKE WALL IVY STICKERS!) =====
     decalGrime: new THREE.MeshStandardMaterial({
       map: loadTex('decal_grime.png', true, 1, 1),
       transparent: true,
@@ -198,13 +196,6 @@ export function createMaterialLibrary(maxAnisotropy = 4) {
       metalness: 0.0,
       polygonOffset: true,
       polygonOffsetFactor: -1,
-    }),
-    decalIvy: new THREE.MeshStandardMaterial({
-      map: loadTex('decal_ivy.png', true, 1, 1),
-      alphaTest: 0.3,
-      roughness: 0.88,
-      metalness: 0.0,
-      side: THREE.DoubleSide,
     }),
   };
 
