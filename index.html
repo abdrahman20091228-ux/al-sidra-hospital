@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#070b0f" />
+  <title>مستشفى السدرة الريفي — ملف الحادثة ١٩٩٤</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <script type="module" crossorigin src="./assets/index-D2BZjBgn.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/three-CffMxZKH.js">
+  <link rel="stylesheet" crossorigin href="./assets/index-GkaZhzFg.css">
+</head>
+<body>
+  <div id="game-container">
+    <div id="viewport"></div>
+    <div id="vignette"></div>
+
+    <!-- CAMCORDER / EXPLORATION HUD -->
+    <div id="camUI" class="hidden">
+      <div class="hud-tl hud-extra">
+        <div class="rec-row">
+          <span class="rec-dot"></span>
+          <span class="rec-label">REC</span>
+          <span class="live-badge">LIVE · <b id="hudViewers">418</b></span>
+        </div>
+        <div id="hudZone">غابة وادي الضباب</div>
+      </div>
+
+      <div id="hudObjective">الهدف 1/8 · اخرج من الغابة نحو الطريق الطيني</div>
+
+      <div class="hud-tr hud-extra">
+        <div id="hudFps">-- FPS</div>
+        <div class="batt-row">
+          <span id="hudBattPct">100%</span>
+          <span class="batt-box"><span id="hudBattFill"></span></span>
+        </div>
+      </div>
+
+      <div id="crosshair"></div>
+
+      <div id="afBox">
+        <div id="afLabel"></div>
+        <div id="afBar"><div id="afFill"></div></div>
+      </div>
+
+      <div id="hudChat" class="hud-extra"></div>
+      <div id="hudSubtitle"></div>
+      <button id="btnInteract" class="hidden"></button>
+
+      <div id="staminaBar"><div id="hudStaFill"></div></div>
+      <div id="hudTimecode" class="hud-extra">00:00:00:00</div>
+
+      <div class="hud-actions">
+        <button class="hud-pill" id="btnMenu">القائمة</button>
+        <button class="hud-pill" id="btnMap">الخريطة [M]</button>
+        <button id="btnLight" aria-label="الكشاف" title="الكشاف [F]">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 3.5h10l-2.3 4.2V21h-5.4V7.7L7 3.5z" />
+            <path d="M12 10.5v2.5" />
+          </svg>
+        </button>
+      </div>
+
+      <div id="joyRoot">
+        <div id="joySprint">ركض ▲</div>
+        <div id="joyRing"></div>
+        <div id="joyNub"></div>
+      </div>
+    </div>
+
+    <!-- MAIN TITLE SCREEN -->
+    <div id="startScreen" class="screen">
+      <div class="title-card">
+        <div class="title-eyebrow">AL-SIDRA RURAL HOSPITAL // ARCHIVE 1994</div>
+        <div class="title-logo">مستشفى السدرة الريفي</div>
+        <div class="title-sub">
+          انطلق من غابة وادي الضباب عبر الطريق الطيني المهجور نحو مستشفى السدرة المصمَّم معماريًا — واكشف سر إخلاء ليلة ١٢ أكتوبر ١٩٩٤.
+        </div>
+        <div class="title-buttons">
+          <button id="btnStartGame" class="menu-btn primary disabled">● ابدأ الاستكشاف والتوثيق</button>
+          <button id="btnTitleSettings" class="menu-btn disabled">⚙ الإعدادات وتوفير البطارية</button>
+          <button id="btnTitleDossier" class="menu-btn disabled">📁 ملف حادثة ١٩٩٤</button>
+        </div>
+        <div id="titleLoad" style="font-size:12px;color:#8bb2ac;margin-top:4px;">جاري تحميل الخامات والبيئة...</div>
+      </div>
+    </div>
+
+    <!-- PAUSE MENU -->
+    <div id="pauseOverlay" class="screen hidden">
+      <h2 style="font-size:22px;color:#f0ece0;">إيقاف مؤقت</h2>
+      <div id="pauseObjectives" class="obj-list"></div>
+      <div style="font-size:12px;color:#9aa7aa;">
+        الهاتف: يسار الشاشة حركة · يمين الشاشة كاميرا &nbsp;|&nbsp; الكمبيوتر: WASD + سحب الماوس · F كشاف · M خريطة · E فحص
+      </div>
+      <div class="btn-row">
+        <button id="btnResume" class="pill-btn primary">استئناف</button>
+        <button id="btnPauseSettings" class="pill-btn">الإعدادات</button>
+        <button id="btnRestart" class="pill-btn">إعادة من الغابة</button>
+      </div>
+    </div>
+
+    <!-- SETTINGS SCREEN (WITH THERMAL / BATTERY CONTROLS) -->
+    <div id="settingsScreen" class="screen hidden">
+      <h2 style="font-size:22px;">الإعدادات والأداء الحراري</h2>
+      <div class="panel-box">
+        <div class="set-sec">الأداء وتوفير بطارية الهاتف</div>
+        <div class="set-row">
+          <span>جودة الرسوميات</span>
+          <div class="seg-group">
+            <button class="seg-btn" data-quality="eco">توفير طاقة</button>
+            <button class="seg-btn" data-quality="balanced">متوازن</button>
+            <button class="seg-btn" data-quality="high">عالي</button>
+          </div>
+        </div>
+        <div class="set-row">
+          <span>حد الإطارات (يمنع سخونة الهاتف)</span>
+          <div class="seg-group">
+            <button class="seg-btn" data-fps="30">30 FPS</button>
+            <button class="seg-btn" data-fps="45">45 FPS</button>
+            <button class="seg-btn" data-fps="60">60 FPS</button>
+            <button class="seg-btn" data-fps="90">90 FPS</button>
+          </div>
+        </div>
+        <div class="set-row">
+          <span>السطوع الليلي</span>
+          <input type="range" id="sBright" min="0" max="1" step="0.05" />
+          <span id="sBrightVal" style="min-width:40px;text-align:left;">22%</span>
+        </div>
+        <div class="set-row">
+          <span>نمط الواجهة</span>
+          <div class="seg-group">
+            <button class="seg-btn" data-hudmode="cam">كاميرا البث</button>
+            <button class="seg-btn" data-hudmode="clean">واجهة نظيفة</button>
+          </div>
+        </div>
+
+        <div class="set-sec">التحكم والصوت</div>
+        <div class="set-row">
+          <span>حساسية الكاميرا</span>
+          <input type="range" id="sSens" min="0.8" max="4.5" step="0.1" />
+          <span id="sSensVal" style="min-width:40px;text-align:left;">2.2x</span>
+        </div>
+        <div class="set-row">
+          <span>الصوت العام</span>
+          <input type="range" id="sVolMaster" min="0" max="1" step="0.05" />
+          <span id="sVolMasterVal" style="min-width:40px;text-align:left;">90%</span>
+        </div>
+        <div class="set-row">
+          <span>أصوات الغابة والمستشفى</span>
+          <input type="range" id="sVolAmb" min="0" max="1" step="0.05" />
+          <span id="sVolAmbVal" style="min-width:40px;text-align:left;">95%</span>
+        </div>
+        <div class="set-row">
+          <span>تنفّس وتعب الشخصية</span>
+          <input type="range" id="sVolBreath" min="0" max="1" step="0.05" />
+          <span id="sVolBreathVal" style="min-width:40px;text-align:left;">90%</span>
+        </div>
+      </div>
+      <button id="btnSetBack" class="pill-btn primary">حفظ ورجوع</button>
+    </div>
+
+    <!-- TORN AGED PAPER MAPS (3 WIDE SWITCHABLE MAPS) -->
+    <div id="mapOverlay" class="screen hidden">
+      <button id="btnMapX">✕</button>
+      <h2 style="font-size:18px;color:#d6be8c;">خرائط مستشفى السدرة — أوراق قديمة ممزقة (١٩٩٤)</h2>
+      <div class="map-tabs">
+        <button class="map-tab" id="tabForest">١. الغابة والطريق الطيني</button>
+        <button class="map-tab" id="tabF1">٢. الطابق الأول (١٤ قسم)</button>
+        <button class="map-tab" id="tabF2">٣. الطابق الثاني</button>
+      </div>
+      <canvas id="mapCanvas" width="960" height="720"></canvas>
+      <div style="font-size:12px;color:#a89470;">الحبر الأحمر = موقعك واتجاه نظرك · علامة ✕ = الهدف · النقاط البنية = ملفات وأدلة</div>
+      <button id="btnMapClose" class="pill-btn">طيّ الورقة وإغلاق</button>
+    </div>
+
+    <!-- INCIDENT DOSSIER -->
+    <div id="dossierScreen" class="screen hidden">
+      <h2 style="font-size:20px;color:#e2b256;">ملف حادثة ١٩٩٤ — مستشفى السدرة الريفي</h2>
+      <div class="paper-box">
+        <div class="paper-meta">ARCHIVE FILE // SRH-1994-10-12</div>
+        أُغلق مستشفى السدرة الريفي الواقع وسط غابة الصنوبر بشكل مفاجئ ليلة ١٢ أكتوبر ١٩٩٤.
+        تزعم السجلات الرسمية أن الإغلاق كان بسبب انهيار الطريق الطيني وانقطاع الكهرباء، غير أن شقيقتك «ندى» — ممرضة المناوبة الليلية — تركت لك خريطة معمارية مرسومة للمبنى وأشرطة مسجلة داخل الأقسام.
+
+        تبدأ رحلتك من أطراف غابة وادي الضباب، ثم تخرج إلى الطريق الطيني الموحل نحو بوابة المستشفى لتستكشف:
+        • بهو الاستقبال · قسم الطوارئ · الصيدلية · محطة التمريض
+        • قسم الأشعة السينية · المختبر الطبي · جناح التنويم · غرفة العزل ٢٠٤
+        • غرفة العمليات · المشرحة وثلاجة الموتى · مكتب المدير
+        • الطابق الثاني: جناح الأطفال والغرفة ٣١٢
+      </div>
+      <button id="btnDossierClose" class="pill-btn primary">إغلاق الملف</button>
+    </div>
+
+    <!-- INTERACTIVE CLUE / CASSETTE READER -->
+    <div id="noteModal" class="screen hidden">
+      <h2 id="noteTitle" style="font-size:20px;color:#f2c868;"></h2>
+      <div class="paper-box">
+        <div id="noteDate" class="paper-meta"></div>
+        <div id="noteBody"></div>
+      </div>
+      <button id="btnNoteClose" class="pill-btn primary">متابعة الاستكشاف</button>
+    </div>
+
+    <!-- ENDING SCREEN -->
+    <div id="endScreen" class="screen hidden">
+      <h2 style="font-size:28px;color:#f2c868;">اكتمل التوثيق الميداني</h2>
+      <div id="endSummary" class="paper-box" style="text-align:center;"></div>
+      <button id="btnPlayAgain" class="pill-btn primary">العودة للاستكشاف من البداية</button>
+    </div>
+  </div>
+
+</body>
+</html>
